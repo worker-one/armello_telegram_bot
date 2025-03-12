@@ -25,4 +25,4 @@ COPY . /app
 EXPOSE 8001
 
 # Run the application when the container launches
-CMD ["python", "src/telegram_bot/main.py"]
+CMD ["python", "-m src.telegram_bot.main"]

@@ -1,0 +1,22 @@
+strings:
+  ru:
+    main_menu:
+      title: "Главное меню"
+      options:
+        - label: "Зарегистрировать матч"
+          value: "match"
+        - label: "Статистика"
+          value: "rating"
+    admin_menu:
+      title: "Меню администратора"
+      options:
+        - label: "Экспорт данных"
+          value: "export_data"
+        - label: "Публичное сообщение"
+          value: "public_message"
+        - label: "Управление пользователями"
+          value: "users"
+        - label: "О приложении"
+          value: "about"
+    no_rights: "У вас нет прав администратора для доступа к этому приложению"
+    cancel: "Отмена"

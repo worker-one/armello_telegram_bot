@@ -6,7 +6,7 @@ from telebot import TeleBot, types
 from telebot.states import State, StatesGroup
 
 from ..database.core import get_session
-from .service import read_hero, format_hero_stats, get_hero_stats
+from .service import format_hero_stats, get_hero_stats, read_hero
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -32,12 +32,12 @@ def register_handlers(bot: TeleBot):
     @bot.message_handler(commands=['herorating'])
     def start_herorating(message):
         """Start the hero rating process"""
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
-        markup.add(types.KeyboardButton("Выход"))
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton("Выход", callback_data="exit_herorating"))
 
         bot.send_message(
             message.chat.id,
-            "Какой герой вас интересует? Напишите его имя. Если вы закончили, нажмите кнопку выхода",
+            "Введите имя героя, используя «Ответить» на это сообщение. Если вы закончили, нажмите кнопку выхода",
             reply_markup=markup
         )
         bot.set_state(message.from_user.id, HeroratingState.waiting_for_hero_name, message.chat.id)
@@ -71,7 +71,7 @@ def register_handlers(bot: TeleBot):
         # Ask for next hero
         bot.send_message(
             message.chat.id,
-            "Какой еще герой вас интересует? Напишите его имя или нажмите кнопку выхода."
+            "Введите имя героя, используя «Ответить» на это сообщение или нажмите кнопку выхода."
         )
 
     # Timeout handler

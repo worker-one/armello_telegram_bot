@@ -14,6 +14,7 @@ apihelper.ENABLE_MIDDLEWARE = True
 
 from .admin.handlers import register_handlers as admin_handlers
 from .auth.data import init_roles_table, init_superuser
+from .common.handlers import register_handlers as common_handlers
 from .customtitle.data import init_custom_titles
 from .customtitle.handlers import register_handlers as customtitle_handlers
 from .clanrating.handlers import register_handlers as clanrating_handlers
@@ -22,6 +23,8 @@ from .database.core import (
     drop_tables,
     get_session,
 )
+
+from .admin.handlers import register_handlers as admin_handlers
 from .herorating.handlers import register_handlers as herorating_handlers
 from .match.data import init_test_data
 from .match.handlers import register_handlers as match_handlers
@@ -90,6 +93,7 @@ def _register_handlers(bot):
         customtitle_handlers,
         menu_handlers,
         herorating_handlers,
+        common_handlers,
         public_message_handlers,
         clanrating_handlers,
         users_handlers,

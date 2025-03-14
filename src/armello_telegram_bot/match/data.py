@@ -6,12 +6,12 @@ from .models import Clan, Hero, Player, Match, MatchParticipant, WinTypeEnum
 def init_clans_and_heroes(db_session: Session):
     # Define clans and their heroes with aliases
     clans_data = {
-        ("Wolf Clan", "Волки"): [("Thane", "Тейн"), ("River", "Ривер"), ("Fang", "Фанг"), ("Magna", "Магна")],
-        ("Rabbit Clan", "Кролики"): [("Amber", "Эмбер"), ("Barnaby", "Барнаби"), ("Hargrave", "Харгрейв"), ("Elyssia", "Элиссия")],
-        ("Rat Clan", "Крысы"): [("Mercurio", "Меркурио"), ("Zosha", "Зоша"), ("Griotte", "Гриот"), ("Sargon", "Саргон")],
-        ("Bear Clan", "Медведи"): [("Sana", "Сана"), ("Brun", "Брун"), ("Ghor", "Гор"), ("Yordana", "Йордана")],
-        ("Bandit Clan", "Разбойники"): [("Twiss", "Твисс"), ("Horace", "Хорас"), ("Scarlet", "Скарлет"), ("Sylas", "Сайлас")],
-        ("Dragon Clan", "Драконы"): [("Volodar", "Володар"), ("Agniya", "Агния"), ("Oxana", "Оксана"), ("Nazar", "Назар")]
+        ("Wolf Clan", "Клан Волков"): [("Thane", "Тейн"), ("River", "Ривер"), ("Fang", "Фанг"), ("Magna", "Магна")],
+        ("Rabbit Clan", "Клан Кроликов"): [("Amber", "Эмбер"), ("Barnaby", "Барнаби"), ("Hargrave", "Харгрейв"), ("Elyssia", "Элиссия")],
+        ("Rat Clan", "Клан Крыс"): [("Mercurio", "Меркурио"), ("Zosha", "Зоша"), ("Griotte", "Гриот"), ("Sargon", "Саргон")],
+        ("Bear Clan", "Клан Медведей"): [("Sana", "Сана"), ("Brun", "Брун"), ("Ghor", "Гор"), ("Yordana", "Йордана")],
+        ("Bandit Clan", "Клан Разбойников"): [("Twiss", "Твисс"), ("Horace", "Хорас"), ("Scarlet", "Скарлет"), ("Sylas", "Сайлас")],
+        ("Dragon Clan", "Клан Драконов"): [("Volodar", "Володар"), ("Agniya", "Агния"), ("Oxana", "Оксана"), ("Nazar", "Назар")]
     }
 
     # Create and add clans and heroes

@@ -2,20 +2,20 @@ import logging
 import re
 import time
 from pathlib import Path
-from threading import Timer
 
 from omegaconf import OmegaConf
 from telebot import TeleBot, types
 from telebot.apihelper import ApiTelegramException
 from telebot.states import State, StatesGroup
 
-from ..database.core import get_session
 from ..auth.service import read_user
+from ..common.service import start_timeout
+from ..database.core import get_session
+from ..rating import service as rating_service
+from ..title import service as title_service
 from .models import Hero, Player
 from .schemas import MatchCreate, ParticipantCreate
 from .service import create_match, read_hero, read_player
-from ..rating import service as rating_service
-from ..title import service as title_service
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -48,41 +48,6 @@ def register_handlers(bot: TeleBot):
     """Register match handlers"""
     logger.info("Registering match handlers")
 
-    def cancel_match_due_to_timeout(chat_id, message_id, data):
-        """Cancel match creation due to timeout"""
-        # Check if the state is still active
-        if data["state"] and not data["state"].is_finished():
-            user = data.get("user")
-            lang = user.lang if user else "en"
-
-            bot.send_message(
-                chat_id,
-                strings[lang].match_timeout,
-                reply_to_message_id=message_id
-            )
-            
-            # Reset the state
-            if data["state"]:
-                data["state"].delete()
-            
-            # Clean up the timer reference
-            if chat_id in match_timeout_timers:
-                del match_timeout_timers[chat_id]
-
-    def reset_timeout_timer(chat_id, message_id, data):
-        """Reset the timeout timer for the match report"""
-        # Cancel existing timer if any
-        if chat_id in match_timeout_timers and match_timeout_timers[chat_id]:
-            match_timeout_timers[chat_id].cancel()
-        
-        # Create a new timer (5 minutes timeout)
-        match_timeout_timers[chat_id] = Timer(
-            300,  # 5 minutes in seconds
-            cancel_match_due_to_timeout,
-            args=[chat_id, message_id, data]
-        )
-        match_timeout_timers[chat_id].start()
-    
     @bot.message_handler(commands=["match"])
     def start_match_report(message: types.Message, data: dict):
         """Start match report process"""
@@ -92,7 +57,7 @@ def register_handlers(bot: TeleBot):
             return
 
         user = data["user"]
-        msg = bot.reply_to(
+        sent_message = bot.reply_to(
             message,
             strings[user.lang].upload_screenshot_prompt
         )
@@ -101,11 +66,10 @@ def register_handlers(bot: TeleBot):
         data["state"].set(MatchState.upload_screenshot)
         data["state"].add_data(
             original_message_id=message.message_id,
-            messages_to_delete=[msg.message_id]
+            messages_to_delete=[sent_message.message_id]
         )
 
-        # Start timeout timer
-        reset_timeout_timer(message.chat.id, message.message_id, data)
+        start_timeout(bot, message.chat.id, sent_message.message_id)
 
     @bot.message_handler(commands=["cancel"], state=[
         MatchState.upload_screenshot, MatchState.enter_players, 

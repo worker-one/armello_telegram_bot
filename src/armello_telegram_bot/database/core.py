@@ -28,8 +28,9 @@ DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 
+print(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD)
 # Check if any of the required environment variables are not set
-if not all([DB_HOST, DB_NAME, DB_USER, DB_PASSWORD]):
+if not all([DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT]):
     logger.warning("One or more postgresql database environment variables are not set. Using SQLite instead.")
     DATABASE_URL = "sqlite:///local_database.db"
 else:

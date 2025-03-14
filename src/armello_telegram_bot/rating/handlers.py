@@ -5,6 +5,7 @@ from omegaconf import OmegaConf
 from telebot import TeleBot, types
 from telebot.states import State, StatesGroup
 
+from ..common.service import cancel_timeout, start_timeout
 from ..database.core import get_session
 from ..herorating import service as hero_service
 from .markup import (
@@ -15,6 +16,7 @@ from .service import (
     get_player_clan_rating,
     get_player_hero_rating,
     get_player_overall_rating,
+    read_clan,
     read_clans,
     read_general_hero_rating,
     read_player,
@@ -49,12 +51,12 @@ def register_handlers(bot: TeleBot):
         user = data["user"]
         data["state"].set(RatingState.select_player)
 
-        bot.reply_to(
+        sent_message = bot.reply_to(
             message,
-            text=strings[user.lang].mention_player,
-            reply_markup=types.ForceReply(selective=True)
+            text=strings[user.lang].mention_player
+            #reply_markup=types.ForceReply(selective=True)
         )
-
+        start_timeout(bot, message.chat.id, sent_message.message_id)
 
     @bot.message_handler(commands=["myrating"])
     def myrating_command(message: types.Message, data: dict):
@@ -70,11 +72,12 @@ def register_handlers(bot: TeleBot):
 
             data["state"].set(RatingState.select_rating_type)
 
-            bot.reply_to(
+            sent_message = bot.reply_to(
                 message,
                 text=strings[user.lang].select_rating_type,
                 reply_markup=create_rating_menu_markup(user.lang, include_other_player=False)
             )
+            start_timeout(bot, message.chat.id, sent_message.message_id)
 
         else:
             bot.reply_to(
@@ -234,6 +237,7 @@ def register_handlers(bot: TeleBot):
     def show_clan_rating(call: types.CallbackQuery, data: dict):
         user = data["user"]
         clan_id = int(call.data.split("_")[3])
+        clan = read_clan(db_session, clan_id)
 
         with data["state"].data() as state_data:
             player_id = int(state_data.get("selected_player"))
@@ -256,7 +260,7 @@ def register_handlers(bot: TeleBot):
         else:
             message_text = strings[user.lang].no_clan_rating_data.format(
                 username=username,
-                clan_name=rating.clan_name
+                clan_name=clan.clan_name
             )
 
         bot.edit_message_text(
@@ -300,7 +304,7 @@ def register_handlers(bot: TeleBot):
     @bot.callback_query_handler(func=lambda call: call.data == "cancel", state=RatingState.select_rating_type)
     def cancel_rating_selection(call: types.CallbackQuery, data: dict):
         user = data["user"]
-        data["state"].finish()
+        data["state"].delete()
 
         bot.edit_message_text(
             chat_id=call.message.chat.id,

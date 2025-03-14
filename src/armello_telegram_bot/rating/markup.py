@@ -26,7 +26,7 @@ def create_rating_menu_markup(lang, include_other_player=True):
     )
     if include_other_player:
         markup.add(InlineKeyboardButton(strings[lang].other_player, callback_data="rating_other_player"))
-    markup.add(InlineKeyboardButton(strings[lang].finish, callback_data="cancel"))
+    markup.add(InlineKeyboardButton(strings[lang].delete, callback_data="cancel"))
     return markup
 
 

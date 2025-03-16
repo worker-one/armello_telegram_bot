@@ -27,9 +27,3 @@ def register_handlers(bot: TeleBot):
         data["state"].delete()
         bot.send_message(message.chat.id, strings[user.lang].operation_cancelled)
 
-
-    @bot.callback_query_handler(func=lambda call: True, state="*")
-    def handle_any_callback(call: types.CallbackQuery, data: dict):
-        """Cancel timeout on any user interaction."""
-        cancel_timeout(call.message.chat.id)
-        bot.answer_callback_query(call.id)

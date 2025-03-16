@@ -9,7 +9,7 @@ from telebot.apihelper import ApiTelegramException
 from telebot.states import State, StatesGroup
 
 from ..auth.service import read_user
-from ..common.service import start_timeout
+from ..common.service import cancel_timeout, start_timeout, user_messages
 from ..database.core import get_session
 from ..rating import service as rating_service
 from ..title import service as title_service
@@ -69,6 +69,7 @@ def register_handlers(bot: TeleBot):
             messages_to_delete=[sent_message.message_id]
         )
 
+        user_messages[message.chat.id] = sent_message.message_id
         start_timeout(bot, message.chat.id, sent_message.message_id)
 
     @bot.message_handler(commands=["cancel"], state=[
@@ -124,7 +125,7 @@ def register_handlers(bot: TeleBot):
         data["state"].add_data(screenshot=photo.file_id)
         
         # Ask for players
-        msg = bot.reply_to(
+        sent_message = bot.reply_to(
             message,
             strings[user.lang].enter_players_prompt
         )
@@ -132,15 +133,16 @@ def register_handlers(bot: TeleBot):
         # Track message for later deletion
         with data["state"].data() as state_data:
             messages_to_delete = state_data.get("messages_to_delete", [])
-            messages_to_delete.append(msg.message_id)
+            messages_to_delete.append(sent_message.message_id)
             messages_to_delete.append(message.message_id)
             data["state"].add_data(messages_to_delete=messages_to_delete)
 
         # Update state
         data["state"].set(MatchState.enter_players)
+        
+        user_messages[message.chat.id] = sent_message.message_id
+        start_timeout(bot, message.chat.id, sent_message.message_id)
 
-        # Reset timeout timer
-        reset_timeout_timer(message.chat.id, message.message_id, data)
 
     @bot.message_handler(state=MatchState.enter_players)
     def process_players(message: types.Message, data: dict):
@@ -189,9 +191,7 @@ def register_handlers(bot: TeleBot):
         
         # Update state
         data["state"].set(MatchState.enter_winner)
-        
-        # Reset timeout timer
-        reset_timeout_timer(message.chat.id, message.message_id, data)
+
 
     @bot.message_handler(state=MatchState.enter_winner)
     def process_winner(message: types.Message, data: dict):
@@ -256,9 +256,7 @@ def register_handlers(bot: TeleBot):
         
         # Update state
         data["state"].set(MatchState.enter_win_type)
-        
-        # Reset timeout timer
-        reset_timeout_timer(message.chat.id, message.message_id, data)
+
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("wintype:"), state=MatchState.enter_win_type)
     def process_win_type(call: types.CallbackQuery, data: dict):
@@ -290,10 +288,8 @@ def register_handlers(bot: TeleBot):
         
         # Update state
         data["state"].set(MatchState.enter_hero)
-        
-        # Reset timeout timer
-        reset_timeout_timer(call.message.chat.id, call.message.message_id, data)
-        
+
+
         # Answer callback to remove loading state
         bot.answer_callback_query(call.id)
 
@@ -428,9 +424,6 @@ def register_handlers(bot: TeleBot):
             # Update state
             data["state"].set(MatchState.confirm_match)
 
-        # Reset timeout timer
-        reset_timeout_timer(message.chat.id, message.message_id, data)
-
 
     @bot.callback_query_handler(func=lambda call: call.data == "match:confirm", state=MatchState.confirm_match)
     def confirm_match(call: types.CallbackQuery, data: dict):
@@ -487,7 +480,7 @@ def register_handlers(bot: TeleBot):
                 bot.delete_message(call.message.chat.id, original_message_id)
             except ApiTelegramException:
                 pass
-            
+
             # Update the final report message (remove the confirmation buttons)
             win_type_display = {
                 "prestige": "Престиж",

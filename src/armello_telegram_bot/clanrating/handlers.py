@@ -5,10 +5,10 @@ from omegaconf import OmegaConf
 from telebot import TeleBot, types
 from telebot.states import State, StatesGroup
 
+from ..common.service import cancel_timeout, start_timeout, user_messages
 from ..database.core import get_session
-from .service import format_clan_stats, read_clans, get_clan_stats
 from .markup import create_clan_selection_menu_markup
-
+from .service import format_clan_stats, get_clan_stats, read_clans
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -36,14 +36,14 @@ def register_handlers(bot: TeleBot):
         """Start the clan rating process"""
         user = data['user']
         chat_id = message.chat.id
-    
+
         clans = read_clans(db_session)
 
         # Create keyboard with clan buttons
         markup = create_clan_selection_menu_markup(user.lang, clans)
 
         # Send message with keyboard
-        bot.send_message(
+        sent_message = bot.send_message(
             chat_id,
             strings[user.lang].welcome_message,
             reply_markup=markup
@@ -51,6 +51,11 @@ def register_handlers(bot: TeleBot):
 
         # Set state
         bot.set_state(message.from_user.id, ClanratingState.waiting_for_clan_name, message.chat.id)
+
+        # Set timer
+        user_messages[message.chat.id] = sent_message.message_id
+        start_timeout(bot, message.chat.id, sent_message.message_id)
+
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("clan_"))
     def process_clan_callback(call: types.CallbackQuery, data: dict):

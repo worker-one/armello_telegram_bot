@@ -101,7 +101,14 @@ def update_ratings_after_match(db: Session, match):
         logger.error(f"Error committing rating updates: {e}")
         raise
 
-def read_player(db: Session, player_id: Optional[int] = None, username: Optional[str] = None):
+def read_player(
+    db: Session, player_id: Optional[int] = None,
+    username: Optional[str] = None,
+    user_id: Optional[int] = None
+    
+    ):
+    if user_id:
+        return db.query(Player).filter_by(user_id=user_id).first()
     if player_id:
         return db.query(Player).filter_by(id=player_id).first()
     if username:

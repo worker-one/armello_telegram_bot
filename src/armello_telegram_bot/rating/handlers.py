@@ -68,10 +68,10 @@ def register_handlers(bot: TeleBot):
         if player:
 
             # Store the selected player in state data
+            data["state"].set(RatingState.select_rating_type)
             data["state"].add_data(selected_player=player.id)
             data["state"].add_data(selected_player_username=user.username)
 
-            data["state"].set(RatingState.select_rating_type)
 
             sent_message = bot.reply_to(
                 message,

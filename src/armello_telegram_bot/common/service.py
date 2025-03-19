@@ -10,7 +10,7 @@ config = OmegaConf.load(CURRENT_DIR / "config.yaml")
 strings = config.strings
 
 # Timeout duration in seconds
-TIMEOUT_DURATION = 30
+TIMEOUT_DURATION = 120
 user_timers = {}
 user_messages = {}  # Store the last message_id for each user
 

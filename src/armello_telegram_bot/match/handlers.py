@@ -9,13 +9,14 @@ from telebot.apihelper import ApiTelegramException
 from telebot.states import State, StatesGroup
 
 from ..auth.service import read_user
-from ..common.service import cancel_timeout, start_timeout, user_messages
+from ..common.service import start_timeout, user_messages
 from ..database.core import get_session
 from ..rating import service as rating_service
 from ..title import service as title_service
 from .models import Hero, Player
 from .schemas import MatchCreate, ParticipantCreate
 from .service import create_match, read_hero, read_player
+from .markup import create_win_type_markup
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -120,16 +121,16 @@ def register_handlers(bot: TeleBot):
         user = data["user"]
         # Get the photo with highest resolution
         photo = message.photo[-1]
-        
+
         # Save file_id to state
         data["state"].add_data(screenshot=photo.file_id)
-        
+
         # Ask for players
         sent_message = bot.reply_to(
             message,
             strings[user.lang].enter_players_prompt
         )
-        
+
         # Track message for later deletion
         with data["state"].data() as state_data:
             messages_to_delete = state_data.get("messages_to_delete", [])
@@ -139,7 +140,7 @@ def register_handlers(bot: TeleBot):
 
         # Update state
         data["state"].set(MatchState.enter_players)
-        
+
         user_messages[message.chat.id] = sent_message.message_id
         start_timeout(bot, message.chat.id, sent_message.message_id)
 
@@ -228,23 +229,11 @@ def register_handlers(bot: TeleBot):
         
         # Save winner to state
         data["state"].add_data(winner_username=winner_username)
-        
-        # Ask for win type with inline keyboard
-        markup = types.InlineKeyboardMarkup(row_width=2)
-        win_types = {
-            "prestige": "Престиж",
-            "murder": "Убийство",
-            "decay": "Гниль",
-            "stones": "Камни Духа"
-        }
-        
-        for win_type, label in win_types.items():
-            markup.add(types.InlineKeyboardButton(label, callback_data=f"wintype:{win_type}"))
-        
-        msg = bot.reply_to(
+
+        sent_message = bot.reply_to(
             message, 
             strings[user.lang].select_win_type,
-            reply_markup=markup
+            reply_markup=create_win_type_markup()
         )
         
         # Track messages for later deletion
@@ -256,6 +245,10 @@ def register_handlers(bot: TeleBot):
         
         # Update state
         data["state"].set(MatchState.enter_win_type)
+        
+        # Send timer
+        user_messages[message.chat.id] = sent_message.message_id
+        start_timeout(bot, message.chat.id, sent_message.message_id)
 
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("wintype:"), state=MatchState.enter_win_type)

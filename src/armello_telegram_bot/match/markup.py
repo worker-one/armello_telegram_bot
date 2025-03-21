@@ -17,6 +17,22 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def create_win_type_markup() -> InlineKeyboardMarkup:
+    # Ask for win type with inline keyboard
+    markup = InlineKeyboardMarkup(row_width=2)
+    win_types = {
+        "prestige": "Престиж",
+        "murder": "Убийство",
+        "decay": "Гниль",
+        "stones": "Камни Духа"
+    }
+
+    for win_type, label in win_types.items():
+        markup.add(InlineKeyboardButton(label, callback_data=f"wintype:{win_type}"))
+        
+    return markup
+
+
 def create_cancel_button(lang: str) -> InlineKeyboardMarkup:
     """ Create a cancel button for the items menu """
     cancel_button = InlineKeyboardMarkup(row_width=1)

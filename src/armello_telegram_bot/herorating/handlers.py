@@ -55,13 +55,17 @@ def register_handlers(bot: TeleBot):
             bot.delete_state(message.from_user.id, message.chat.id)
             return
 
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton("Выход", callback_data="exit_herorating"))
+
         # Try to find hero
         hero = read_hero(db_session, message.text)
 
         if not hero:
             bot.send_message(
                 message.chat.id,
-                strings[user.lang].hero_not_found.format(name=message.text)
+                strings[user.lang].hero_not_found.format(name=message.text),
+                reply_markup=markup
             )
             return
 
@@ -71,9 +75,6 @@ def register_handlers(bot: TeleBot):
         # Format and send response
         stats_message = format_hero_stats(hero, stats)
         bot.send_message(message.chat.id, stats_message)
-        
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton("Выход", callback_data="exit_herorating"))
 
         # Ask for next hero
         sent_message = bot.send_message(

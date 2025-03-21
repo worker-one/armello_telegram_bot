@@ -10,13 +10,13 @@ from .models import GeneralClanRating, GeneralHeroRating, PlayerClanRating, Play
 def update_ratings_after_match(db: Session, match):
     """
     Обновление рейтингов на основании результатов матча.
-    Для простоты предположим, что победителю начисляется +10 очков, а проигравшим – -5 очков.
+    Для простоты предположим, что победителю начисляется +4 очков, а проигравшим – -1 очков.
     """
     logger = logging.getLogger(__name__)
     logger.info(f"Updating ratings for match {match.id}")
 
-    winner_points = 10
-    loser_points = -5
+    winner_points = 4
+    loser_points = -1
 
     for participant in match.participants:
         player_id = participant.player_id

@@ -32,6 +32,7 @@ from .middleware.user import UserCallbackMiddleware, UserMessageMiddleware
 from .public_message.handlers import register_handlers as public_message_handlers
 from .rating.data import init_rating_test_data
 from .rating.handlers import register_handlers as rating_handlers
+from .start.handlers import register_handlers as start_handlers
 from .title.data import init_titles
 from .title.handlers import register_handlers as title_handlers
 from .top.handlers import register_handlers as top_handlers
@@ -98,6 +99,7 @@ def _register_handlers(bot):
         match_handlers,
         title_handlers,
         rating_handlers,
+        start_handlers,
         top_handlers
     ]
     for handler in handlers:
@@ -141,8 +143,8 @@ def init_db():
     init_rating_test_data(db_session)
     init_titles(db_session)
     init_custom_titles(db_session)
-    #init_hero_rating_table(db_session)
-    #init_clans_and_heroes(db_session)
+    # init_hero_rating_table(db_session)
+    # init_clans_and_heroes(db_session)
 
     # Add admin to user table
     if SUPERUSER_USER_ID:
@@ -155,6 +157,6 @@ def init_db():
 
 
 if __name__ == "__main__":
-    #drop_tables()
-    #init_db()
+    drop_tables()
+    init_db()
     start_bot()

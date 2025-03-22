@@ -59,7 +59,9 @@ def create_match(db: Session, match_data: MatchCreate):
             match_id=match.id,
             player_id=player.id,
             hero_id=hero.id,
-            is_winner=(participant.username == match_data.winner_username)
+            is_winner=(participant.username == match_data.winner_username),
+            # add score 4 if winner and -1 otherwise
+            score=4 if (participant.username == match_data.winner_username) else -1
         )
         db.add(match_participant)
 

@@ -73,7 +73,7 @@ def register_handlers(bot: TeleBot):
         # Get clan statistics
         try:
             clan_stats = get_clan_stats(db_session, clan_name)
-            stats_text = format_clan_stats(clan_name, clan_stats)
+            stats_text = format_clan_stats(clan_name.split(' ')[1], clan_stats)
 
             markup = InlineKeyboardMarkup()
             markup.add(

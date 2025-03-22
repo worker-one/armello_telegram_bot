@@ -260,7 +260,7 @@ def register_handlers(bot: TeleBot):
         if rating:
             message_text = strings[user.lang].player_clan_rating.format(
                 username=username,
-                clan_name=rating.clan_name,
+                clan_name=rating.clan_name.split(" ")[1],
                 rating=rating.rating,
                 wins=rating.wins,
                 losses=rating.losses,

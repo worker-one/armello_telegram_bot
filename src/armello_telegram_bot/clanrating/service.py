@@ -32,6 +32,11 @@ def get_clan_stats(session: Session, clan_name: str):
         hero_ids = [hero.id for hero in heroes]
         print(f"Hero IDs: {hero_ids}")
         
+        # Clalculate score as a sum of all participants' scores for the clan
+        clan_score = session.query(func.sum(MatchParticipant.score))\
+            .filter(MatchParticipant.hero_id.in_(hero_ids)).scalar() or 0
+        print(f"Clan score: {clan_score}")
+        
         # Calculate total games, wins and losses for the clan
         wins = session.query(func.count(MatchParticipant.id))\
             .filter(MatchParticipant.hero_id.in_(hero_ids))\
@@ -70,16 +75,16 @@ def get_clan_stats(session: Session, clan_name: str):
             .filter(MatchParticipant.is_winner == True)\
             .filter(MatchParticipant.win_type == WinTypeEnum.stones).scalar() or 0
         print(f"Spirit stone wins: {stones_wins}")
-        
+
         best_player = top_services.get_top_players_by_clan(session, clan_id=clan.id, limit=1)[0]
-        
+
         # get title associated with this clan
         clan_title = title_services.read_clan_title(session, clan_id=clan.id)
 
         print("Updating clan stats in database...")
         # Create or update clan stats
         clan_stats, created = get_or_create_clan_stats(session, clan_name)
-        
+
         # Update stats
         clan_stats.total_games = total_games
         clan_stats.wins = wins
@@ -90,10 +95,11 @@ def get_clan_stats(session: Session, clan_name: str):
         clan_stats.stones_wins = stones_wins
         clan_stats.best_player_username = best_player.username
         clan_stats.best_player_title = clan_title.title
-        
+        clan_stats.score = clan_score
+
         session.commit()
         print("Stats updated successfully")
-        
+
         return clan_stats
         
     except Exception as e:
@@ -142,7 +148,7 @@ def format_clan_stats(clan_name, stats):
     win_rate = (stats.wins / stats.total_games * 100) if stats.total_games > 0 else 0
     
     result = [
-        f"Общий рейтинг клана {clan_name}:",
+        f"Общий рейтинг клана {clan_name}: {stats.score}",
         f"Победы: {stats.wins}",
         f"Поражения: {stats.losses}",
         f"Винрейт: {win_rate:.1f}%",

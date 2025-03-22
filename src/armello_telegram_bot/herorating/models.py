@@ -10,6 +10,7 @@ class HeroStats(Base, TimeStampMixin):
     
     id = Column(Integer, primary_key=True)
     hero_id = Column(Integer, ForeignKey('heroes.id'), unique=True)
+    score = Column(Integer, default=0)
     total_matches = Column(Integer, default=0)
     total_wins = Column(Integer, default=0)
     prestige_wins = Column(Integer, default=0)

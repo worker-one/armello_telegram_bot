@@ -75,6 +75,7 @@ class MatchParticipant(Base):
     hero_id = Column(Integer, ForeignKey('heroes.id'))
     is_winner = Column(Boolean, default=False)
     win_type = Column(SQLEnum(WinTypeEnum), nullable=True)
+    score = Column(Integer, default=0)
 
     match = relationship("Match", back_populates="participants")
     player = relationship("Player", back_populates="matches")

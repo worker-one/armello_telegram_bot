@@ -94,7 +94,8 @@ def init_matches(db_session: Session, match_count=50):
                 player_id=player.id,
                 hero_id=hero.id,
                 is_winner=is_winner,
-                win_type=win_type if is_winner else None
+                win_type=win_type if is_winner else None,
+                score=4 if is_winner else -1
             )
             db_session.add(participant)
     

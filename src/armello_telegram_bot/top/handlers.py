@@ -156,7 +156,7 @@ def register_handlers(bot: TeleBot):
         top_player_title = get_top_clan_player_title(db_session, clan_id)
         
         # Format the list
-        message_lines = [strings[user.lang].top_players_by_clan_header.format(clan_name=clan.name)]
+        message_lines = [strings[user.lang].top_players_by_clan_header.format(clan_name=clan.name.split(' ')[1])]
         
         for i, player in enumerate(top_players, 1):
             message_lines.append(

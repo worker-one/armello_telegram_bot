@@ -98,5 +98,5 @@ def get_db():
 
 # Start a new session
 Session = sessionmaker(bind=engine)
-session = Session()
+db_session = Session()
 

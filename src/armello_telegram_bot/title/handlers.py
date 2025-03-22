@@ -5,7 +5,7 @@ from omegaconf import OmegaConf
 from telebot import TeleBot, types
 from telebot.states import State, StatesGroup
 
-from ..database.core import get_session
+from ..database.core import db_session
 from ..match.models import Player
 from .service import CLAN_CATEGORIES, get_available_titles, update_title
 from ..common.service import start_timeout
@@ -61,7 +61,7 @@ def register_handlers(bot: TeleBot):
 
             bot.send_message(message.chat.id, strings[user.lang].title_prompt, reply_markup=markup)
             data["state"].set(TitleState.select_title)
-            start_timeout(bot, message.chat.id, message.message_id)
+            # start_timeout(bot, message.chat.id, message.message_id)
 
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("title_select:"), state=TitleState.select_title)

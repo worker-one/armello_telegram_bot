@@ -6,7 +6,7 @@ from telebot import TeleBot, types
 from telebot.states import State, StatesGroup
 
 from ..common.service import cancel_timeout, start_timeout, user_messages
-from ..database.core import get_session
+from ..database.core import db_session
 from ..herorating import service as hero_service
 from .markup import (
     create_clan_selection_markup,
@@ -31,7 +31,7 @@ config = OmegaConf.load(CURRENT_DIR / "config.yaml")
 strings = config.strings
 
 # Load the database session
-db_session = get_session()
+ 
 
 # Define States
 class TopState(StatesGroup):
@@ -57,8 +57,8 @@ def register_handlers(bot: TeleBot):
             text=strings[user.lang].select_top_type,
             reply_markup=create_top_selection_markup(user.lang)
         )
-        start_timeout(bot, message.chat.id, sent_message.message_id)
-        user_messages[message.chat.id] = sent_message.message_id
+        # start_timeout(bot, message.chat.id, sent_message.message_id)
+        # user_messages[message.chat.id] = sent_message.message_id
 
     @bot.callback_query_handler(func=lambda call: call.data == "top_players_overall", state=TopState.select_top_type)
     def show_top_players_overall(call: types.CallbackQuery, data: dict):
@@ -78,8 +78,8 @@ def register_handlers(bot: TeleBot):
             text="\n".join(message_lines),
             reply_markup=create_top_selection_markup(user.lang)
         )
-        user_messages[call.message.chat.id] = call.message.message_id
-        start_timeout(bot, call.message.chat.id, call.message.message_id)
+        # user_messages[call.message.chat.id] = call.message.message_id
+        # start_timeout(bot, call.message.chat.id, call.message.message_id)
 
     @bot.callback_query_handler(func=lambda call: call.data == "top_players_by_hero", state=TopState.select_top_type)
     def ask_for_hero_name(call: types.CallbackQuery, data: dict):

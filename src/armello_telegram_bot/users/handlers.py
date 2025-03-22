@@ -10,7 +10,7 @@ from telebot.states import State, StatesGroup
 from telebot.types import CallbackQuery, Message
 
 from ..auth.service import read_user, upsert_user
-from ..database.core import export_all_tables, get_session
+from ..database.core import export_all_tables, db_session
 from .markup import create_cancel_button, create_users_menu_markup
 
 # Set up logging
@@ -52,7 +52,7 @@ def register_handlers(bot):
     def read_user_data(message: Message, data: dict):
         user = data["user"]
         user_data = message.text
-        db_session = get_session()
+         
 
         if user_data.isdigit():
             retrieved_user = read_user(db_session, id=int(user_data))
@@ -88,7 +88,7 @@ def register_handlers(bot):
     def grant_admin_handler(call, data: dict):
         user = data["user"]
         grant_admin_user_id = call.data.split("_")[2]
-        db_session = get_session()
+         
         upsert_user(db_session, id=grant_admin_user_id, role_id=0)
         bot.send_message(
             user.id, app_strings[user.lang].add_admin_confirm.format(
@@ -102,7 +102,7 @@ def register_handlers(bot):
     def block_user_handler(call, data: dict):
         user = data["user"]
         block_user_id = call.data.split("_")[2]
-        db_session = get_session()
+         
         upsert_user(db_session, id=block_user_id, is_blocked=True)
         bot.send_message(
             user.id,
@@ -116,7 +116,7 @@ def register_handlers(bot):
     def block_user_handler(call, data: dict):
         user = data["user"]
         block_user_id = call.data.split("_")[2]
-        db_session = get_session()
+         
         upsert_user(db_session, id=block_user_id, is_blocked=False)
         bot.send_message(
             user.id,
@@ -131,7 +131,7 @@ def register_handlers(bot):
     def grant_admin_handler(call, data: dict):
         user = data["user"]
         revoke_admin_user_id = call.data.split("_")[2]
-        db_session = get_session()
+         
         upsert_user(db_session, id=revoke_admin_user_id, role_id=1)
         bot.send_message(
             user.id, app_strings[user.lang].revoke_admin_confirm.format(

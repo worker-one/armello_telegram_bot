@@ -6,7 +6,7 @@ from telebot.states.sync.context import StateContext
 from telebot.types import CallbackQuery, Message
 
 from ..auth.service import upsert_user
-from ..database.core import get_session
+from ..database.core import db_session
 from .service import create_event
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ class UserMessageMiddleware(BaseMiddleware):
     def pre_process(self, message: Message, data: dict):
         """Pre-process the message"""
 
-        db_session = get_session()
+         
         user = upsert_user(
             db_session,
             id=message.from_user.id,
@@ -63,7 +63,7 @@ class UserCallbackMiddleware(BaseMiddleware):
 
     def pre_process(self, callback_query: CallbackQuery, data: dict):
         """Pre-process the callback query"""
-        db_session = get_session()
+         
         user = upsert_user(
             db_session,
             id=callback_query.from_user.id,

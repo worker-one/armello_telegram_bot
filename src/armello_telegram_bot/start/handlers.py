@@ -2,10 +2,10 @@ import logging.config
 from pathlib import Path
 
 from omegaconf import OmegaConf
-from telebot.states import State
+from telebot.states import State, StatesGroup
 from telebot.types import Message
 
-from ..database.core import get_session
+from ..database.core import db_session
 from ..auth import service as auth_services
 
 logging.basicConfig(level=logging.INFO)
@@ -19,9 +19,9 @@ strings = config.strings
 # Constants
 ADMIN_CODE = "feral"
 
-db_session = get_session()
+ 
 
-class AppStates:
+class AppStates(StatesGroup):
     menu = State()
     admin = State()
     waiting_for_hello_message = State()
@@ -67,17 +67,18 @@ def register_handlers(bot):
     @bot.message_handler(commands=["hellomessage"])
     def hello_message_command(message: Message, data: dict):
         user = data["user"]
+        data["state"].set(AppStates.waiting_for_hello_message)
         
         # Check if user is admin
         if not auth_services.is_admin(user):
-            #bot.send_message(message.chat.id, get_string_for_user(user, "not_admin_message"))
+            bot.send_message(message.chat.id, get_string_for_user(user, "not_admin_message"))
             data["state"].delete()
             return
         
-        data["state"].set(AppStates.waiting_for_hello_message)
+        
         bot.send_message(message.chat.id, get_string_for_user(user, "hello_message_prompt"))
 
-    @bot.message_handler(content_types=["text"], state=AppStates.waiting_for_hello_message)
+    @bot.message_handler(state=AppStates.waiting_for_hello_message)
     def process_hello_message(message: Message, data: dict):
         user = data["user"]
         new_message = message.text

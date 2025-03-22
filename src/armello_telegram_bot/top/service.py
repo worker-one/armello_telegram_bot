@@ -13,6 +13,7 @@ from ..rating.models import (
     PlayerOverallRating,
 )
 from .schemas import ClanRatingModel, ClanTopPlayerModel, HeroRatingModel, PlayerRatingModel
+from ..title import service as title_services
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -109,7 +110,7 @@ def get_top_clan_player_title(db: Session, clan_id: int) -> Optional[ClanTopPlay
     clan = db.query(Clan).filter(Clan.id == clan_id).first()
     if not clan:
         return None
-    
+
     top_player_rating = (
         db.query(
             Player.username,
@@ -120,20 +121,15 @@ def get_top_clan_player_title(db: Session, clan_id: int) -> Optional[ClanTopPlay
         .order_by(desc(PlayerClanRating.rating))
         .first()
     )
-    
+
     if not top_player_rating:
         return None
-    
-    title_prefix = {
-        1: "Старейшина",  # Bear
-        2: "Архимаг",     # Rabbit
-        3: "Командующий", # Rat
-        4: "Предводитель" # Wolf
-    }.get(clan_id, "Лидер")
-    
+
+    title = title_services.get_title(db, clan_id=clan_id)
+
     return ClanTopPlayerModel(
         username=top_player_rating.username,
-        title=f"{title_prefix} {clan.name}"
+        title=title
     )
 
 
@@ -151,9 +147,9 @@ def get_top_heroes(db: Session, limit: int = 24) -> List[HeroRatingModel]:
         .order_by(desc(GeneralHeroRating.rating))
         .limit(limit)
     )
-    
+
     results = query.all()
-    
+
     return [
         HeroRatingModel(
             id=result.id,

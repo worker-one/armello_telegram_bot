@@ -6,7 +6,7 @@ from telebot import TeleBot, types
 from telebot.states import State, StatesGroup
 
 from ..common.service import start_timeout
-from ..database.core import get_session
+from ..database.core import db_session
 from ..match.models import Player
 from .service import (
     CLAN_CATEGORIES,
@@ -77,7 +77,7 @@ def register_handlers(bot: TeleBot):
 
             sent_message = bot.send_message(message.chat.id, strings[user.lang].title_prompt, reply_markup=markup)
             data["state"].set(TitleState.select_title)
-            start_timeout(bot, message.chat.id, sent_message.message_id)
+            # start_timeout(bot, message.chat.id, sent_message.message_id)
 
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("title_select:"), state=TitleState.select_title)

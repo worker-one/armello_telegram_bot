@@ -37,6 +37,7 @@ from .title.data import init_titles
 from .title.handlers import register_handlers as title_handlers
 from .top.handlers import register_handlers as top_handlers
 from .users.handlers import register_handlers as users_handlers
+from .database.core import db_session
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -133,8 +134,6 @@ def init_db():
     """Initialize the database for applications."""
     # Create tables
     create_tables()
-
-    db_session = get_session()
 
     init_roles_table(db_session)
 

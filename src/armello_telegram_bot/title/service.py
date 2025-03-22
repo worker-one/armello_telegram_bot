@@ -53,9 +53,14 @@ def is_top_player_in_clan(session: Session, player_id: int, clan_name: str) -> b
     return is_top
 
 
-def get_title(session: Session, category: str) -> Optional[str]:
+def get_title(session: Session, category: str = None, clan_id: int = None) -> Optional[str]:
     """Get the current title for a category"""
-    title = session.query(Title).filter(Title.category == category).first()
+    if category:
+        title = session.query(Title).filter(Title.category == category).first()
+    elif clan_id:
+        title = session.query(Title).filter(Title.clan_id == clan_id).first()
+    else:
+        title = None
     if not title:
         # Create default title if none exists
         default_title = "Best Player" if category == "overall" else f"Best {category.capitalize()} Player"

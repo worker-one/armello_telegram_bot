@@ -10,7 +10,7 @@ from telebot.states import State, StatesGroup
 
 from ..auth.service import read_user
 from ..common.service import start_timeout, user_messages
-from ..database.core import get_session
+from ..database.core import db_session
 from ..rating import service as rating_service
 from ..title import service as title_service
 from .models import Hero, Player
@@ -27,7 +27,7 @@ config = OmegaConf.load(CURRENT_DIR / "config.yaml")
 strings = config.strings
 
 # Load the database session
-db_session = get_session()
+ 
 
 # Define States
 class MatchState(StatesGroup):
@@ -70,8 +70,8 @@ def register_handlers(bot: TeleBot):
             messages_to_delete=[sent_message.message_id]
         )
 
-        user_messages[message.chat.id] = sent_message.message_id
-        start_timeout(bot, message.chat.id, sent_message.message_id)
+        # user_messages[message.chat.id] = sent_message.message_id
+        # start_timeout(bot, message.chat.id, sent_message.message_id)
 
     @bot.message_handler(commands=["cancel"], state=[
         MatchState.upload_screenshot, MatchState.enter_players, 
@@ -141,8 +141,8 @@ def register_handlers(bot: TeleBot):
         # Update state
         data["state"].set(MatchState.enter_players)
 
-        user_messages[message.chat.id] = sent_message.message_id
-        start_timeout(bot, message.chat.id, sent_message.message_id)
+        # user_messages[message.chat.id] = sent_message.message_id
+        # start_timeout(bot, message.chat.id, sent_message.message_id)
 
 
     @bot.message_handler(state=MatchState.enter_players)
@@ -246,9 +246,9 @@ def register_handlers(bot: TeleBot):
         # Update state
         data["state"].set(MatchState.enter_win_type)
         
-        # Send timer
-        user_messages[message.chat.id] = sent_message.message_id
-        start_timeout(bot, message.chat.id, sent_message.message_id)
+        # # Send timer
+        # user_messages[message.chat.id] = sent_message.message_id
+        # start_timeout(bot, message.chat.id, sent_message.message_id)
 
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("wintype:"), state=MatchState.enter_win_type)

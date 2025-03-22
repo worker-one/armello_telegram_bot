@@ -5,7 +5,7 @@ from omegaconf import OmegaConf
 from telebot import TeleBot, types
 from telebot.states import State, StatesGroup
 
-from ..database.core import get_session
+from ..database.core import db_session
 from .service import format_hero_stats, get_hero_stats, read_hero
 from ..common.service import cancel_timeout, start_timeout, user_messages
 
@@ -16,9 +16,6 @@ logger.setLevel(logging.INFO)
 CURRENT_DIR = Path(__file__).parent
 config = OmegaConf.load(CURRENT_DIR / "config.yaml")
 strings = config.strings
-
-# Load the database session
-db_session = get_session()
 
 # Define States
 class HeroratingState(StatesGroup):
@@ -42,8 +39,8 @@ def register_handlers(bot: TeleBot):
             reply_markup=markup
         )
         bot.set_state(message.from_user.id, HeroratingState.waiting_for_hero_name, message.chat.id)
-        start_timeout(bot, message.chat.id, sent_message.message_id)
-        user_messages[message.chat.id] = sent_message.message_id
+        # start_timeout(bot, message.chat.id, sent_message.message_id)
+        # user_messages[message.chat.id] = sent_message.message_id
 
 
     @bot.message_handler(state=HeroratingState.waiting_for_hero_name, content_types=['text'])
@@ -82,5 +79,5 @@ def register_handlers(bot: TeleBot):
             "Введите имя героя, используя «Ответить» на это сообщение или нажмите кнопку выхода.",
             reply_markup=markup
         )
-        start_timeout(bot, message.chat.id, sent_message.message_id)
-        user_messages[message.chat.id] = sent_message.message_id
+        # start_timeout(bot, message.chat.id, sent_message.message_id)
+        # user_messages[message.chat.id] = sent_message.message_id

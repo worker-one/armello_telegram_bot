@@ -2,6 +2,8 @@ import random
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from .models import Clan, Hero, Player, Match, MatchParticipant, WinTypeEnum
+from ..rating.service import update_ratings_after_match
+
 
 def init_clans_and_heroes(db_session: Session):
     # Define clans and their heroes with aliases
@@ -44,6 +46,12 @@ def init_players(db_session: Session, count=10):
         user_id=954020212,
         username="konverner"
     )
+    
+    player = Player(
+        user_id=1155221348,
+        username="comm0m"
+    )
+    
     db_session.add(player)
         
     db_session.commit()
@@ -75,19 +83,19 @@ def init_matches(db_session: Session, match_count=50):
         )
         db_session.add(match)
         db_session.flush()  # Get match.id
-        
+
         # Select 4 random players for this match
         match_players = random.sample(players, 4)
         # Select 4 random heroes for this match (no duplicates)
         match_heroes = random.sample(heroes, 4)
-        
+
         # Randomly select a winner
         winner_index = random.randint(0, 3)
-        
+
         # Create participants
         for j, (player, hero) in enumerate(zip(match_players, match_heroes)):
             is_winner = (j == winner_index)
-            if player.id == 954020212:
+            if player.id == 1155221348:
                 is_winner = True
             participant = MatchParticipant(
                 match_id=match.id,
@@ -98,7 +106,9 @@ def init_matches(db_session: Session, match_count=50):
                 score=4 if is_winner else -1
             )
             db_session.add(participant)
-    
+
+    #update_ratings_after_match(db_session, match)
+
     db_session.commit()
 
 def init_test_data(db_session: Session):

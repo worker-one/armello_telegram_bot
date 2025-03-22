@@ -15,6 +15,7 @@ from .markup import (
 from .service import (
     get_player_clan_rating,
     get_player_hero_rating,
+    rebuild_player_ratings,
     get_player_overall_rating,
     read_clan,
     read_clans,
@@ -133,6 +134,7 @@ def register_handlers(bot: TeleBot):
             player_id = state_data.get("selected_player")
             username = state_data.get("selected_player_username")
 
+        rebuild_player_ratings(db_session, player_id)
         rating = get_player_overall_rating(db_session, player_id)
 
         if rating:
@@ -150,6 +152,10 @@ def register_handlers(bot: TeleBot):
                 wins=rating.wins,
                 losses=rating.losses,
                 win_rate=f"{rating.win_rate*100:.1f}%",
+                prestige_wins=rating.prestige_wins,
+                murder_wins=rating.murder_wins,
+                decay_wins=rating.decay_wins,
+                stones_wins=rating.stones_wins,
                 titles=titles,
             )
         else:

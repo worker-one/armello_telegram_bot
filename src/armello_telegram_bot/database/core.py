@@ -8,16 +8,13 @@ from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
-from ..auth.models import Base, Role
+from ..auth.models import Base
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
+logging.getLogger('sqlalchemy.engine.Engine').setLevel(logging.WARN)
 logger = logging.getLogger(__name__)
 
-
-# Load logging configuration with OmegaConf
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 load_dotenv(find_dotenv(usecwd=True))
 
@@ -85,7 +82,7 @@ def export_all_tables(export_dir: str):
     db.close()
 
 # Create engine and session factory
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Dependency function

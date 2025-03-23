@@ -28,9 +28,27 @@ strings:
         Победа через Гниль: {decay_wins}
         Победы через Камни: {stones_wins}
         
-        Титулы: {titles}"
-      player_hero_rating: "Рейтинг игрока @{username} на герое {hero_name}:\nРейтинг: {rating}\nПобед: {wins}\nПоражений: {losses}\nПроцент побед: {win_rate}"
-      player_clan_rating: "Рейтинг игрока @{username} в клане {clan_name}:\nРейтинг: {rating}\nПобед: {wins}\nПоражений: {losses}\nПроцент побед: {win_rate}"
+        Титулы: {titles}
+      player_hero_rating: |
+        Рейтинг игрока @{username} на герое {hero_name}: {rating}
+        Побед: {wins}
+        Поражений: {losses}
+        Процент побед: {win_rate}
+
+        Победы через престиж: {prestige_wins}
+        Победы через убийство Короля: {murder_wins}
+        Победа через Гниль: {decay_wins}
+        Победы через Камни: {stones_wins}
+      player_clan_rating: |
+        Рейтинг игрока @{username} в клане {clan_name}: {rating}
+        Побед: {wins}
+        Поражений: {losses}
+        Процент побед: {win_rate}
+
+        Победы через престиж: {prestige_wins}
+        Победы через убийство Короля: {murder_wins}
+        Победа через Гниль: {decay_wins}
+        Победы через Камни: {stones_wins}
       no_rating_data: "У игрока @{username} пока нет данных о рейтинге."
       no_hero_rating_data: "Игрок @{username} еще не играл за героя {hero_name}."
       no_clan_rating_data: "Игрок @{username} еще не играл за {clan_name}."

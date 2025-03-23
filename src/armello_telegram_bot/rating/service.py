@@ -70,12 +70,25 @@ def update_player_ratings_for_match(db: Session, match, player_id: int):
     ph = db.query(PlayerHeroRating).filter_by(player_id=player_id, hero_id=hero_id).first()
     if not ph:
         logger.info(f"Creating new hero rating for player {player_id}, hero {hero_id}")
-        ph = PlayerHeroRating(player_id=player_id, hero_id=hero_id, rating=0, wins=0, losses=0)
+        ph = PlayerHeroRating(
+            player_id=player_id, hero_id=hero_id, rating=0, wins=0,
+            losses=0, prestige_wins=0, murder_wins=0, stones_wins=0, decay_wins=0
+        )
         db.add(ph)
     
     if participant.is_winner:
         ph.rating += winner_points
         ph.wins += 1
+        
+        # kind of win
+        if participant.win_type == WinTypeEnum.prestige:
+            ph.prestige_wins += 1
+        elif participant.win_type == WinTypeEnum.murder:
+            ph.murder_wins += 1
+        elif participant.win_type == WinTypeEnum.decay:
+            ph.decay_wins += 1
+        elif participant.win_type == WinTypeEnum.stones:
+            ph.stones_wins += 1
     else:
         ph.rating += loser_points
         ph.losses += 1
@@ -84,12 +97,25 @@ def update_player_ratings_for_match(db: Session, match, player_id: int):
     pc = db.query(PlayerClanRating).filter_by(player_id=player_id, clan_id=clan_id).first()
     if not pc:
         logger.info(f"Creating new clan rating for player {player_id}, clan {clan.id}")
-        pc = PlayerClanRating(player_id=player_id, clan_id=clan_id, clan_name=clan.name, rating=0, wins=0, losses=0)
+        pc = PlayerClanRating(
+            player_id=player_id, clan_id=clan_id, clan_name=clan.name, rating=0, wins=0,
+            losses=0, prestige_wins=0, murder_wins=0, stones_wins=0, decay_wins=0
+        )
         db.add(pc)
-    
+
     if participant.is_winner:
         pc.rating += winner_points
         pc.wins += 1
+        
+        # kind of win
+        if participant.win_type == WinTypeEnum.prestige:
+            pc.prestige_wins += 1
+        elif participant.win_type == WinTypeEnum.murder:
+            pc.murder_wins += 1
+        elif participant.win_type == WinTypeEnum.decay:
+            pc.decay_wins += 1
+        elif participant.win_type == WinTypeEnum.stones:
+            pc.stones_wins += 1
     else:
         pc.rating += loser_points
         pc.losses += 1
@@ -100,7 +126,7 @@ def update_player_ratings_for_match(db: Session, match, player_id: int):
     except Exception as e:
         logger.error(f"Error committing rating updates for player {player_id}: {e}")
         raise
-    
+
 
 def rebuild_player_ratings(db: Session, player_id: int):
     """

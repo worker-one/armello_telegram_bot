@@ -139,7 +139,7 @@ def init_db():
 
     # Initialize data tables
     init_test_data(db_session)
-    init_rating_test_data(db_session)
+    #init_rating_test_data(db_session)
     init_titles(db_session)
     init_custom_titles(db_session)
     # init_hero_rating_table(db_session)

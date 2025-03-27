@@ -31,7 +31,7 @@ def init_clans_and_heroes(db_session: Session):
     # Commit all changes
     db_session.commit()
 
-def init_players(db_session: Session, count=10):
+def init_players(db_session: Session, count=5):
     """Initialize test players"""
     usernames = [f"player{i}" for i in range(1, count + 1)]
     
@@ -46,6 +46,8 @@ def init_players(db_session: Session, count=10):
         user_id=954020212,
         username="konverner"
     )
+    
+    db_session.add(player)
     
     player = Player(
         user_id=1155221348,
@@ -95,7 +97,8 @@ def init_matches(db_session: Session, match_count=50):
         # Create participants
         for j, (player, hero) in enumerate(zip(match_players, match_heroes)):
             is_winner = (j == winner_index)
-            if player.id == 1155221348:
+            if player.id == 954020212:
+                print('winner')
                 is_winner = True
             participant = MatchParticipant(
                 match_id=match.id,
@@ -123,7 +126,7 @@ def init_test_data(db_session: Session):
     player_count = db_session.query(Player).count()
     if player_count == 0:
         print("Initializing players...")
-        init_players(db_session, count=10)
+        init_players(db_session, count=5)
     
     match_count = db_session.query(Match).count()
     if match_count == 0:

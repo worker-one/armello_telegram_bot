@@ -14,12 +14,12 @@ from .markup import (
 from .service import (
     get_player_clan_rating,
     get_player_hero_rating,
-    rebuild_player_ratings,
     get_player_overall_rating,
     read_clan,
     read_clans,
     read_general_hero_rating,
     read_player,
+    rebuild_all_ratings,
 )
 
 logger = logging.getLogger(__name__)
@@ -45,6 +45,23 @@ class RatingState(StatesGroup):
 def register_handlers(bot: TeleBot):
     """Register rating handlers"""
     logger.info("Registering rating handlers")
+
+    @bot.message_handler(commands=["update_rating"])
+    def rating_command(message: types.Message, data: dict):
+        user = data["user"]
+
+        sent_message = bot.reply_to(
+            message,
+            text="Рейтинг обновляется. Пожалуйста, подождите..."
+
+        )
+        rebuild_all_ratings(db_session)
+
+        bot.edit_message_text(
+            chat_id=sent_message.chat.id,
+            message_id=sent_message.message_id,
+            text="Рейтинг обновлен."
+        )
 
     @bot.message_handler(commands=["rating"])
     def rating_command(message: types.Message, data: dict):
@@ -133,7 +150,6 @@ def register_handlers(bot: TeleBot):
             player_id = state_data.get("selected_player")
             username = state_data.get("selected_player_username")
 
-        rebuild_player_ratings(db_session, player_id)
         rating = get_player_overall_rating(db_session, player_id)
 
         if rating:
@@ -202,7 +218,6 @@ def register_handlers(bot: TeleBot):
             )
             return
 
-        rebuild_player_ratings(db_session, player_id)
         rating = get_player_hero_rating(db_session, player_id, hero.id)
 
         data["state"].set(RatingState.select_rating_type)
@@ -263,7 +278,6 @@ def register_handlers(bot: TeleBot):
             player_id = int(state_data.get("selected_player"))
             username = state_data.get("selected_player_username")
 
-        rebuild_player_ratings(db_session, player_id)
         rating = get_player_clan_rating(db_session, player_id, clan_id)
 
         data["state"].set(RatingState.select_rating_type)

@@ -3,7 +3,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from ..match.models import Clan, Player
+from ..match.models import Clan, Player, Match
 from .models import GeneralClanRating, WinTypeEnum, GeneralHeroRating, PlayerClanRating, PlayerHeroRating, PlayerOverallRating
 
 
@@ -213,6 +213,61 @@ def rebuild_player_ratings(db: Session, player_id: int):
         "clan_ratings": clan_ratings_count
     }
 
+
+def rebuild_all_ratings(db: Session):
+    """
+    Rebuild all ratings based on complete match history.
+    Resets all rating tables and recalculates from scratch.
+    
+    Args:
+        db: Database session
+    
+    Returns:
+        Dictionary with statistics about the rebuild process
+    """
+    logger = logging.getLogger(__name__)
+    logger.info("Starting complete rating rebuild")
+    
+    # Clear all rating tables
+    logger.info("Clearing existing ratings")
+    db.query(PlayerOverallRating).delete()
+    db.query(PlayerHeroRating).delete()
+    db.query(PlayerClanRating).delete()
+    db.query(GeneralHeroRating).delete()
+    db.query(GeneralClanRating).delete()
+    db.commit()
+    
+    # Get all matches ordered by date
+    matches = db.query(Match).order_by(Match.timestamp).all()
+    
+    logger.info(f"Processing {len(matches)} matches")
+    processed_count = 0
+    
+    # Process each match
+    for match in matches:
+        try:
+            update_ratings_after_match(db, match)
+            processed_count += 1
+
+            if processed_count % 10 == 0:
+                logger.info(f"Processed {processed_count}/{len(matches)} matches")
+
+        except Exception as e:
+            logger.error(f"Error processing match {match.id}: {e}")
+
+    # Gather statistics
+    stats = {
+        "matches_processed": processed_count,
+        "matches_total": len(matches),
+        "player_ratings": db.query(PlayerOverallRating).count(),
+        "hero_ratings": db.query(PlayerHeroRating).count(),
+        "clan_ratings": db.query(PlayerClanRating).count(),
+        "general_hero_ratings": db.query(GeneralHeroRating).count(),
+        "general_clan_ratings": db.query(GeneralClanRating).count()
+    }
+
+    logger.info(f"Rating rebuild complete. Stats: {stats}")
+    return stats
 
 
 def update_ratings_after_match(db: Session, match):

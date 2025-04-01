@@ -101,7 +101,7 @@ def init_matches(db_session: Session, match_count=50):
         # Create participants
         for j, (player, hero) in enumerate(zip(match_players, match_heroes)):
             is_winner = (j == winner_index)
-            if player.id == 7826381817:
+            if player.id == 1155221348:
                 print('winner')
                 is_winner = True
             participant = MatchParticipant(

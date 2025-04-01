@@ -26,13 +26,13 @@ def read_hero(db: Session, hero_name: str) -> Hero:
 
     # Try to find closest match in names or aliases
     search_term = hero_name.lower()
-    matches = get_close_matches(search_term, hero_names + hero_aliases, n=1, cutoff=0.6)
+    matches = get_close_matches(search_term, hero_names + hero_aliases, n=1, cutoff=0.4)
 
     if matches:
         closest_match = matches[0]
         # Find hero with matching name or alias
         return db.query(Hero).filter(
-            (Hero.name.ilike(closest_match)) | 
+            (Hero.name.ilike(closest_match)) |
             (Hero.alias.ilike(closest_match))
         ).first()
 

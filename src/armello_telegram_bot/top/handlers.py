@@ -17,8 +17,8 @@ from .service import (
     get_top_players,
     get_top_heroes,
     get_top_clans,
-    get_player_hero_rankings,
-    get_player_clan_rankings,
+    get_player_clan_ratings,
+    get_player_hero_ratings,
     get_win_type_distribution,
     get_player_position
 )
@@ -105,11 +105,11 @@ def register_handlers(bot: TeleBot):
             return
 
         # Use the new service function - filter player rankings by hero's associated heroes
-        top_players = get_top_players(
-            db_session, 
-            limit=10, 
+        top_players = get_player_hero_ratings(
+            db_session,
+            limit=10,
             sort_by="rating",
-            clan_id=hero.clan_id  # Filter by clan instead of specific hero for better results
+            hero_id=hero.id  # Filter by clan instead of specific hero for better results
         )
         
         message_lines = [strings[user.lang].top_players_by_hero_header.format(hero_name=hero.name)]
@@ -124,6 +124,7 @@ def register_handlers(bot: TeleBot):
         )
         user_messages[message.chat.id] = sent_message.message_id
         data["state"].set(TopState.select_top_type)
+
 
     @bot.callback_query_handler(func=lambda call: call.data == "top_players_by_clan", state=TopState.select_top_type)
     def select_clan_for_top(call: types.CallbackQuery, data: dict):
@@ -157,8 +158,8 @@ def register_handlers(bot: TeleBot):
             )
             return
         
-        # Use the new service function
-        top_players = get_top_players(db_session, limit=10, sort_by="rating", clan_id=clan_id)
+        # Get player clan ratings
+        top_players = get_player_clan_ratings(db_session, sort_by="rating", clan_id=clan_id, limit=10)
         
         # For the top player title, get the highest-rated player
         top_player_title = None
@@ -166,22 +167,22 @@ def register_handlers(bot: TeleBot):
             top_player = top_players[0]
             clan_name = clan.name.split(' ')[1]  # Extract clan name
             title = f"Лучший игрок клана {clan_name}"  # Title for top player
-            top_player_title = {"username": top_player["username"], "title": title}
-        
+            top_player_title = {"player": top_player, "title": title}
+
         # Format the list
         message_lines = [strings[user.lang].top_players_by_clan_header.format(clan_name=clan.name.split(' ')[1])]
-        
+
         for i, player in enumerate(top_players, 1):
             message_lines.append(
-                f"{i}. @{player['username']} – {player['rating']}: {player['wins']}-{player['losses']}-{player['win_rate']}%"
+                f'{i}. {player["username"]} – {player["rating"]}: {player["wins"]}-{player["losses"]}-{player["win_rate"]}%'
             )
-        
+
         message_lines.append("")
         if top_player_title:
-            message_lines.append(f"@{top_player_title['username']} – {top_player_title['title']}")
-        
+            message_lines.append(f"{top_player_title['player']['username']} – {top_player_title['title']}")
+
         data["state"].set(TopState.select_top_type)
-        
+
         bot.edit_message_text(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
@@ -194,7 +195,7 @@ def register_handlers(bot: TeleBot):
     def show_top_heroes(call: types.CallbackQuery, data: dict):
         user = data["user"]
         # Use the new service function
-        top_heroes = get_top_heroes(db_session, limit=10, sort_by="rating", min_games=5)
+        top_heroes = get_top_heroes(db_session, limit=100, sort_by="rating")
         
         # Format the list
         message_lines = [strings[user.lang].top_heroes_header]
@@ -228,21 +229,21 @@ def register_handlers(bot: TeleBot):
                 f"{i}. Клан {clan_name} – {clan['rating']}: {clan['wins']}-{clan['losses']}-{clan['win_rate']}%"
             )
         
-        # Add win type distribution for all clans
-        message_lines.append("\n🏆 Распределение типов побед:")
-        for clan in top_clans:
-            clan_name = clan['name'].split(' ')[1] if ' ' in clan['name'] else clan['name']
-            win_types = []
-            if clan['prestige_wins'] > 0:
-                win_types.append(f"Prestige: {clan['prestige_wins']}")
-            if clan['murder_wins'] > 0:
-                win_types.append(f"Murder: {clan['murder_wins']}")
-            if clan['decay_wins'] > 0:
-                win_types.append(f"Decay: {clan['decay_wins']}")
-            if clan['stones_wins'] > 0:
-                win_types.append(f"Stones: {clan['stones_wins']}")
+        # # Add win type distribution for all clans
+        # message_lines.append("\n🏆 Распределение типов побед:")
+        # for clan in top_clans:
+        #     clan_name = clan['name'].split(' ')[1] if ' ' in clan['name'] else clan['name']
+        #     win_types = []
+        #     if clan['prestige_wins'] > 0:
+        #         win_types.append(f"Prestige: {clan['prestige_wins']}")
+        #     if clan['murder_wins'] > 0:
+        #         win_types.append(f"Murder: {clan['murder_wins']}")
+        #     if clan['decay_wins'] > 0:
+        #         win_types.append(f"Decay: {clan['decay_wins']}")
+        #     if clan['stones_wins'] > 0:
+        #         win_types.append(f"Stones: {clan['stones_wins']}")
                 
-            message_lines.append(f"Клан {clan_name}: {', '.join(win_types)}")
+        #     message_lines.append(f"Клан {clan_name}: {', '.join(win_types)}")
         
         bot.edit_message_text(
             chat_id=call.message.chat.id,

@@ -8,19 +8,10 @@ class Title(Base):
     """Title model for storing custom titles for top players and clans"""
     __tablename__ = 'titles'
     id = Column(Integer, primary_key=True)
-    category = Column(String, nullable=False)  # 'overall', 'wolf', 'rabbit', 'rat', 'bear', 'bandit', 'dragon'
+    category = Column(String, nullable=False)  # 'overall', 'clan', 'custom'
     clan_id = Column(Integer, ForeignKey('clans.id'), nullable=True)
     title = Column(String, nullable=False, default="Best Player")  # The custom title text
     default = Column(Boolean, nullable=False, default=True)  # Whether this is a default title
     player_id = Column(Integer, ForeignKey('players.id'))
 
-    player = relationship("Player", secondary="player_titles", back_populates="titles")
-
-
-# Associated table for storing titles for players
-titles = Table(
-    'player_titles',
-    Base.metadata,
-    Column('player_id', Integer, ForeignKey('players.id')),
-    Column('title_id', Integer, ForeignKey('titles.id'))
-)
+    player = relationship("Player", back_populates="titles")

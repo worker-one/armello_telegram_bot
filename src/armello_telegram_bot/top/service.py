@@ -14,6 +14,200 @@ from ..rating.models import (
 from ..match.models import Player, Hero, Clan
 
 
+def get_player_clan_ratings(db: Session, clan_id: Optional[int] = None, 
+    min_games: int = 0,
+    sort_by: str = "rating", 
+    descending: bool = True,
+    limit: Optional[int] = None
+    ):
+    """
+    Retrieve player clan ratings joined with player data to include usernames.
+
+    Args:
+        db: Database session
+        clan_id: Optional filter by clan ID
+        min_games: Minimum number of total games (wins + losses) to include
+        sort_by: Field to sort by ('rating', 'wins', 'losses', 'win_rate')
+        descending: Whether to sort in descending order
+        limit: Optional limit on the number of results returned
+
+    Returns:
+        List of dictionaries containing player clan rating data
+    """
+    logger = logging.getLogger(__name__)
+
+    # Start with a join between PlayerClanRating and Player
+    query = db.query(PlayerClanRating, Player).join(
+        Player, PlayerClanRating.player_id == Player.id
+    )
+    
+    # Apply filters
+    if clan_id is not None:
+        query = query.filter(PlayerClanRating.clan_id == clan_id)
+        
+    # Add win_rate to the result
+    query = query.add_columns(
+        (PlayerClanRating.wins / func.nullif((PlayerClanRating.wins + PlayerClanRating.losses), 0)).label("win_rate")
+    )
+    
+    # Filter by minimum games played
+    if min_games > 0:
+        query = query.filter((PlayerClanRating.wins + PlayerClanRating.losses) >= min_games)
+    
+    # Apply sorting
+    if sort_by == "rating":
+        sort_field = PlayerClanRating.rating
+    elif sort_by == "wins":
+        sort_field = PlayerClanRating.wins
+    elif sort_by == "losses":
+        sort_field = PlayerClanRating.losses
+    elif sort_by == "win_rate":
+        # Calculate win rate in the database
+        total_games = PlayerClanRating.wins + PlayerClanRating.losses
+        win_rate = PlayerClanRating.wins / func.nullif(total_games, 0)
+        query = query.filter(total_games > 0)  # Avoid division by zero
+        sort_field = win_rate
+    else:
+        # Default to rating if invalid sort field
+        logger.warning(f"Invalid sort_by parameter: {sort_by}. Using 'rating' instead.")
+        sort_field = PlayerClanRating.rating
+    
+    # Apply sort direction
+    if descending:
+        query = query.order_by(sort_field.desc())
+    else:
+        query = query.order_by(sort_field.asc())
+    
+    # Apply limit if provided
+    if limit is not None:
+        query = query.limit(limit)
+
+    results = query.all()
+    
+    # Convert results to dictionaries
+    formatted_results = []
+    for clan_rating, player, win_rate in results:
+        formatted_results.append({
+            "player_id": player.id,
+            "username": player.username,
+            "clan_id": clan_rating.clan_id,
+            "rating": clan_rating.rating,
+            "wins": clan_rating.wins,
+            "losses": clan_rating.losses,
+            "win_rate": round(win_rate * 100, 1) if win_rate else 0,
+            "prestige_wins": clan_rating.prestige_wins,
+            "murder_wins": clan_rating.murder_wins,
+            "decay_wins": clan_rating.decay_wins,
+            "stones_wins": clan_rating.stones_wins
+        })
+
+    logger.info(f"Retrieved {len(formatted_results)} player clan ratings with usernames")
+
+    return formatted_results
+
+
+def get_player_hero_ratings(
+    db: Session,
+    player_id: Optional[int] = None,
+    hero_id: Optional[int] = None, 
+    min_games: int = 0,
+    sort_by: str = "rating", 
+    descending: bool = True,
+    limit: Optional[int] = None
+    ):
+    """
+    Retrieve player hero ratings joined with player and hero data.
+
+    Args:
+        db: Database session
+        player_id: Optional filter by player ID
+        hero_id: Optional filter by hero ID
+        min_games: Minimum number of total games (wins + losses) to include
+        sort_by: Field to sort by ('rating', 'wins', 'losses', 'win_rate')
+        descending: Whether to sort in descending order
+        limit: Optional limit on the number of results returned
+
+    Returns:
+        List of dictionaries containing player hero rating data
+    """
+    logger = logging.getLogger(__name__)
+
+    # Start with a join between PlayerHeroRating, Player and Hero
+    query = db.query(PlayerHeroRating, Player, Hero).join(
+        Player, PlayerHeroRating.player_id == Player.id
+    ).join(
+        Hero, PlayerHeroRating.hero_id == Hero.id
+    )
+    
+    # Apply filters
+    if player_id is not None:
+        query = query.filter(PlayerHeroRating.player_id == player_id)
+    
+    if hero_id is not None:
+        query = query.filter(PlayerHeroRating.hero_id == hero_id)
+        
+    # Add win_rate to the result
+    query = query.add_columns(
+        (PlayerHeroRating.wins / func.nullif((PlayerHeroRating.wins + PlayerHeroRating.losses), 0)).label("win_rate")
+    )
+    
+    # Filter by minimum games played
+    if min_games > 0:
+        query = query.filter((PlayerHeroRating.wins + PlayerHeroRating.losses) >= min_games)
+    
+    # Apply sorting
+    if sort_by == "rating":
+        sort_field = PlayerHeroRating.rating
+    elif sort_by == "wins":
+        sort_field = PlayerHeroRating.wins
+    elif sort_by == "losses":
+        sort_field = PlayerHeroRating.losses
+    elif sort_by == "win_rate":
+        # Calculate win rate in the database
+        total_games = PlayerHeroRating.wins + PlayerHeroRating.losses
+        win_rate = PlayerHeroRating.wins / func.nullif(total_games, 0)
+        query = query.filter(total_games > 0)  # Avoid division by zero
+        sort_field = win_rate
+    else:
+        # Default to rating if invalid sort field
+        logger.warning(f"Invalid sort_by parameter: {sort_by}. Using 'rating' instead.")
+        sort_field = PlayerHeroRating.rating
+
+    # Apply sort direction
+    if descending:
+        query = query.order_by(sort_field.desc())
+    else:
+        query = query.order_by(sort_field.asc())
+
+    # Apply limit if provided
+    if limit is not None:
+        query = query.limit(limit)
+
+    results = query.all()
+
+    # Convert results to dictionaries
+    formatted_results = []
+    for hero_rating, player, hero, win_rate in results:
+        formatted_results.append({
+            "player_id": player.id,
+            "username": player.username,
+            "hero_id": hero.id,
+            "hero_name": hero.name,
+            "rating": hero_rating.rating,
+            "wins": hero_rating.wins,
+            "losses": hero_rating.losses,
+            "win_rate": round(win_rate * 100, 1) if win_rate else 0,
+            "prestige_wins": hero_rating.prestige_wins,
+            "murder_wins": hero_rating.murder_wins,
+            "decay_wins": hero_rating.decay_wins,
+            "stones_wins": hero_rating.stones_wins
+        })
+
+    logger.info(f"Retrieved {len(formatted_results)} player hero ratings")
+
+    return formatted_results
+
+
 def get_top_players(
     db: Session,
     limit: int = 10,
@@ -45,6 +239,7 @@ def get_top_players(
     )
     
     if clan_id:
+        print(f"Filtering by clan_id: {clan_id}")
         # Filter by players who have played the specified clan
         clan_players = db.query(PlayerClanRating.player_id).filter_by(clan_id=clan_id)
         query = query.filter(PlayerOverallRating.player_id.in_(clan_players))
@@ -80,7 +275,7 @@ def get_top_players(
             "titles": rating.titles,
             "custom_titles": rating.custom_titles
         })
-    
+
     return top_players
 
 
@@ -89,7 +284,7 @@ def get_top_heroes(
     limit: int = 10,
     offset: int = 0,
     sort_by: str = "rating",
-    min_games: int = 10
+    min_games: int = 0
 ) -> List[Dict[str, Any]]:
     """
     Get top heroes based on their general rating.
@@ -149,7 +344,7 @@ def get_top_heroes(
 
 def get_top_clans(
     db: Session,
-    limit: int = 4,  # Default to 4 since there are 4 clans in Armello
+    limit: int = 10,  # Default to 4 since there are 4 clans in Armello
     sort_by: str = "rating"
 ) -> List[Dict[str, Any]]:
     """

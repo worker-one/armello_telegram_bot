@@ -328,6 +328,17 @@ def update_ratings_after_match(db: Session, match):
         if participant.is_winner:
             ph.rating += winner_points
             ph.wins += 1
+
+            # kind of win
+            if participant.win_type == WinTypeEnum.prestige:
+                ph.prestige_wins += 1
+            elif participant.win_type == WinTypeEnum.murder:
+                ph.murder_wins += 1
+            elif participant.win_type == WinTypeEnum.decay:
+                ph.decay_wins += 1
+            elif participant.win_type == WinTypeEnum.stones:
+                ph.stones_wins += 1
+
         else:
             ph.rating += loser_points
             ph.losses += 1
@@ -341,6 +352,17 @@ def update_ratings_after_match(db: Session, match):
         if participant.is_winner:
             pc.rating += winner_points
             pc.wins += 1
+
+            # kind of win
+            if participant.win_type == WinTypeEnum.prestige:
+                pc.prestige_wins += 1
+            elif participant.win_type == WinTypeEnum.murder:
+                pc.murder_wins += 1
+            elif participant.win_type == WinTypeEnum.decay:
+                pc.decay_wins += 1
+            elif participant.win_type == WinTypeEnum.stones:
+                pc.stones_wins += 1
+
         else:
             pc.rating += loser_points
             pc.losses += 1

@@ -46,22 +46,7 @@ def register_handlers(bot: TeleBot):
     """Register rating handlers"""
     logger.info("Registering rating handlers")
 
-    @bot.message_handler(commands=["update_rating"])
-    def rating_command(message: types.Message, data: dict):
-        user = data["user"]
 
-        sent_message = bot.reply_to(
-            message,
-            text="Рейтинг обновляется. Пожалуйста, подождите..."
-
-        )
-        rebuild_all_ratings(db_session)
-
-        bot.edit_message_text(
-            chat_id=sent_message.chat.id,
-            message_id=sent_message.message_id,
-            text="Рейтинг обновлен."
-        )
 
     @bot.message_handler(commands=["rating"])
     def rating_command(message: types.Message, data: dict):
@@ -156,9 +141,9 @@ def register_handlers(bot: TeleBot):
             player = read_player(db_session, player_id=player_id)
             titles = ""
             if player.titles:
-                titles = ";".join([title.title for title in player.titles]).strip(";")
+                titles = "; ".join([title.title for title in player.titles]).strip("; ")
             if player.custom_titles:
-                titles += ";" + ";".join([title.title for title in player.custom_titles]).strip(";")
+                titles += "; " + "; ".join([title.title for title in player.custom_titles]).strip("; ")
             if not titles:
                 titles = strings[user.lang].no_titles
             message_text = strings[user.lang].player_overall_rating.format(
@@ -208,9 +193,8 @@ def register_handlers(bot: TeleBot):
             username = state_data.get("selected_player_username")
 
         hero = hero_service.read_hero(db_session, hero_name=hero_name)
-        general_hero_rating = read_general_hero_rating(db_session, hero.id)
 
-        if not general_hero_rating:
+        if not hero:
             bot.reply_to(
                 message,
                 text=strings[user.lang].hero_not_found,

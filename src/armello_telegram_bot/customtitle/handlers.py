@@ -5,7 +5,6 @@ from omegaconf import OmegaConf
 from telebot import TeleBot, types
 from telebot.states import State, StatesGroup
 
-from ..common.service import start_timeout
 from ..database.core import db_session
 from ..match.models import Player
 from .service import (
@@ -126,7 +125,7 @@ def register_handlers(bot: TeleBot):
         # Clear state
         data["state"].delete()
 
-    # New handlers for custom titles
+    # Custom title handlers
 
     @bot.message_handler(commands=["customtitle"])
     def custom_title_command(message: types.Message, data: dict):

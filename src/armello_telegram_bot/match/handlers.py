@@ -257,6 +257,7 @@ def register_handlers(bot: TeleBot):
         user = data["user"]
         win_type = call.data.split(':')[1]
         data["state"].add_data(win_type=win_type)
+        print("Win type selected:", win_type)
         
         # Setup for hero selection
         with data["state"].data() as state_data:
@@ -380,7 +381,7 @@ def register_handlers(bot: TeleBot):
             
             # Create summary
             summary = f"Матч №{match_id}\n"
-            summary += f"Победа через {win_type_display}\n\n"
+            summary += f"Победы через {win_type_display}\n\n"
             
             # Add player info
             for username in players:
@@ -442,6 +443,7 @@ def register_handlers(bot: TeleBot):
                 participants.append(ParticipantCreate(username=username, hero_id=hero_id))
 
             # Create match
+            print("win type:", win_type)
             match_create = MatchCreate(
                 screenshot=screenshot,
                 win_type=win_type,
@@ -483,7 +485,7 @@ def register_handlers(bot: TeleBot):
             }.get(win_type, win_type.capitalize())
 
             final_report = f"Матч №{match_id}\n"
-            final_report += f"Победа через {win_type_display}\n\n"
+            final_report += f"Победы через {win_type_display}\n\n"
 
             for username in players:
                 hero_id = hero_selection.get(username)

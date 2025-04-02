@@ -60,6 +60,7 @@ def create_match(db: Session, match_data: MatchCreate):
             player_id=player.id,
             hero_id=hero.id,
             is_winner=(participant.username == match_data.winner_username),
+            win_type=match_data.win_type if (participant.username == match_data.winner_username) else None,
             # add score 4 if winner and -1 otherwise
             score=4 if (participant.username == match_data.winner_username) else -1
         )

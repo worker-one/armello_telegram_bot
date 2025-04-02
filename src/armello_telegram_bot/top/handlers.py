@@ -23,6 +23,8 @@ from .service import (
     get_player_position
 )
 from ..rating.service import read_clans
+from ..title import service as title_service
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -70,6 +72,10 @@ def register_handlers(bot: TeleBot):
                 f"{i}. @{player['username']} – {player['rating']}: {player['wins']}-{player['losses']}-{player['win_rate']}%"
             )
         message_lines.append("\n" + strings[user.lang].top_players_explanation)
+        
+        title = title_service.get_title(db_session, category="overall")
+        top_player_string = f"@{title.player.username} – {title.title}"
+        message_lines.append(top_player_string)
 
         bot.edit_message_text(
             chat_id=call.message.chat.id,
@@ -157,17 +163,17 @@ def register_handlers(bot: TeleBot):
                 text=strings[user.lang].clan_not_found
             )
             return
-        
+
         # Get player clan ratings
         top_players = get_player_clan_ratings(db_session, sort_by="rating", clan_id=clan_id, limit=10)
-        
+
         # For the top player title, get the highest-rated player
         top_player_title = None
         if top_players:
             top_player = top_players[0]
             clan_name = clan.name.split(' ')[1]  # Extract clan name
-            title = f"Лучший игрок клана {clan_name}"  # Title for top player
-            top_player_title = {"player": top_player, "title": title}
+            title = title_service.read_clan_title(db_session, clan_id=clan.id)
+            top_player_title = {"player": top_player, "title": title.title}
 
         # Format the list
         message_lines = [strings[user.lang].top_players_by_clan_header.format(clan_name=clan.name.split(' ')[1])]

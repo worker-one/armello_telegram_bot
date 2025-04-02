@@ -83,11 +83,10 @@ def update_player_ratings_for_match(db: Session, match, player_id: int):
         )
         db.add(ph)
         db.flush()
-    
     if participant.is_winner:
         ph.rating += winner_points
         ph.wins += 1
-        
+
         # kind of win
         if participant.win_type == WinTypeEnum.prestige:
             ph.prestige_wins += 1
@@ -304,10 +303,10 @@ def update_ratings_after_match(db: Session, match):
             logger.info(f"Creating new overall rating for player {player_id}")
             overall = PlayerOverallRating(
                 player_id=player_id, rating=0, wins=0,
-                losses=0, prestige_wins=0, murder_wins=0, stones_wins=0
+                losses=0, prestige_wins=0, murder_wins=0, stones_wins=0, decay_wins=0
             )
             db.add(overall)
-            #db.commit()  # Commit to get the ID for the new overall rating
+            db.flush()  # Use flush instead of commit to get the ID without committing transaction
 
         if participant.is_winner:
             overall.rating += winner_points
@@ -331,8 +330,11 @@ def update_ratings_after_match(db: Session, match):
         ph = db.query(PlayerHeroRating).filter_by(player_id=player_id, hero_id=hero_id).first()
         if not ph:
             logger.info(f"Creating new hero rating for player {player_id}, hero {hero_id}")
-            ph = PlayerHeroRating(player_id=player_id, hero_id=hero_id, rating=0, wins=0, losses=0)
+            ph = PlayerHeroRating(player_id=player_id, hero_id=hero_id, rating=0, wins=0,
+                losses=0, prestige_wins=0, murder_wins=0, stones_wins=0, decay_wins=0
+            )
             db.add(ph)
+            db.flush()
         if participant.is_winner:
             ph.rating += winner_points
             ph.wins += 1
@@ -355,8 +357,12 @@ def update_ratings_after_match(db: Session, match):
         pc = db.query(PlayerClanRating).filter_by(player_id=player_id, clan_id=clan_id).first()
         if not pc:
             logger.info(f"Creating new clan rating for player {player_id}, clan {clan.id}")
-            pc = PlayerClanRating(player_id=player_id, clan_id=clan_id, clan_name=clan.name, rating=0, wins=0, losses=0)
+            pc = PlayerClanRating(
+                player_id=player_id, clan_id=clan_id, clan_name=clan.name,
+                rating=0, wins=0, losses=0, prestige_wins=0, murder_wins=0, stones_wins=0, decay_wins=0
+            )
             db.add(pc)
+            db.flush()
         if participant.is_winner:
             pc.rating += winner_points
             pc.wins += 1
@@ -408,11 +414,11 @@ def update_ratings_after_match(db: Session, match):
         logger.error(f"Error committing rating updates: {e}")
         raise
 
+
 def read_player(
     db: Session, player_id: Optional[int] = None,
     username: Optional[str] = None,
     user_id: Optional[int] = None
-    
     ):
     if user_id:
         return db.query(Player).filter_by(user_id=user_id).first()

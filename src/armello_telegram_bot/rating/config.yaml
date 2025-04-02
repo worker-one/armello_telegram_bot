@@ -25,8 +25,8 @@ strings:
 
         Победы через престиж: {prestige_wins}
         Победы через убийство Короля: {murder_wins}
-        Победа через Гниль: {decay_wins}
-        Победы через Камни: {stones_wins}
+        Победы через Гниль: {decay_wins}
+        Победы через Камни духа: {stones_wins}
         
         Титулы: {titles}
       player_hero_rating: |
@@ -37,8 +37,8 @@ strings:
 
         Победы через престиж: {prestige_wins}
         Победы через убийство Короля: {murder_wins}
-        Победа через Гниль: {decay_wins}
-        Победы через Камни: {stones_wins}
+        Победы через Гниль: {decay_wins}
+        Победы через Камни духа: {stones_wins}
       player_clan_rating: |
         Рейтинг игрока @{username} в клане {clan_name}: {rating}
         Побед: {wins}
@@ -47,8 +47,8 @@ strings:
 
         Победы через престиж: {prestige_wins}
         Победы через убийство Короля: {murder_wins}
-        Победа через Гниль: {decay_wins}
-        Победы через Камни: {stones_wins}
+        Победы через Гниль: {decay_wins}
+        Победы через Камни духа: {stones_wins}
       no_rating_data: "У игрока @{username} пока нет данных о рейтинге."
       no_hero_rating_data: "Игрок @{username} еще не играл за героя {hero_name}."
       no_clan_rating_data: "Игрок @{username} еще не играл за {clan_name}."

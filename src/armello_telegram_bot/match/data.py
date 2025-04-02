@@ -104,7 +104,6 @@ def init_matches(db_session: Session, match_count=50):
             if player.id == 1155221348:
                 print('winner')
                 is_winner = True
-            #print(f"Match {i+1}: Player {player.username} with Hero {hero.name} is {'winner' if is_winner else 'loser'}")
             participant = MatchParticipant(
                 match_id=match.id,
                 player_id=player.id,

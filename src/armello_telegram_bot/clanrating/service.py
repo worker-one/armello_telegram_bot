@@ -153,7 +153,7 @@ def format_clan_stats(clan_name, stats):
         f"Поражения: {stats.losses}",
         f"Винрейт: {win_rate:.1f}%",
         "",
-        f"Победы через престиж: {stats.prestige_wins}",
+        f"Победы через Престиж: {stats.prestige_wins}",
         f"Победы через убийство Короля: {stats.murder_wins}",
         f"Победы через Гниль: {stats.decay_wins}",
         f"Победы через Камни Духа: {stats.stones_wins}\n",

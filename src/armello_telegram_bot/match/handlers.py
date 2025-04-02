@@ -454,7 +454,7 @@ def register_handlers(bot: TeleBot):
             rating_service.update_ratings_after_match(db_session, match)
 
             # Update titles
-            title_service.update_titles_after_match(db_session)
+            title_service.update_title_for_all_players(db_session)
 
             # Clean up the timer
             if call.message.chat.id in match_timeout_timers:

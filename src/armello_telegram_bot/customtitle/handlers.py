@@ -44,7 +44,7 @@ def register_handlers(bot: TeleBot):
     """Register title handlers"""
     logger.info("Registering title handlers")
 
-    @bot.message_handler(commands=["title"])
+    @bot.message_handler(commands=["customtitle"])
     def title_command(message: types.Message, data: dict):
         """Handle /title command - start title selection process"""
         user = data["user"]
@@ -125,7 +125,7 @@ def register_handlers(bot: TeleBot):
         # Clear state
         data["state"].delete()
 
-    # Custom title handlers
+    # New handlers for custom titles
 
     @bot.message_handler(commands=["customtitle"])
     def custom_title_command(message: types.Message, data: dict):

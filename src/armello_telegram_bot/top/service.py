@@ -12,6 +12,7 @@ from ..rating.models import (
     WinTypeEnum
 )
 from ..match.models import Player, Hero, Clan
+from .schemas import PlayerRatingModel
 
 
 def get_player_clan_ratings(db: Session, clan_id: Optional[int] = None, 
@@ -340,6 +341,35 @@ def get_top_heroes(
         })
     
     return top_heroes
+
+
+def get_top_players_by_clan(db: Session, clan_id: int, limit: int = 10) -> List[PlayerRatingModel]:
+    """Get top players for a specific clan"""
+    query = (
+        db.query(
+            Player.username,
+            PlayerClanRating.rating,
+            PlayerClanRating.wins,
+            PlayerClanRating.losses
+        )
+        .join(PlayerClanRating, Player.id == PlayerClanRating.player_id)
+        .filter(PlayerClanRating.clan_id == clan_id)
+        .order_by(desc(PlayerClanRating.rating))
+        .limit(limit)
+    )
+    
+    results = query.all()
+    
+    return [
+        PlayerRatingModel(
+            username=result.username,
+            rating=result.rating,
+            wins=result.wins,
+            losses=result.losses,
+            win_rate=result.wins / (result.wins + result.losses) if (result.wins + result.losses) > 0 else 0
+        )
+        for result in results
+    ]
 
 
 def get_top_clans(

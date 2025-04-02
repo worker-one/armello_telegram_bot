@@ -50,6 +50,7 @@ def is_top_player_overall(session: Session, player_id: int) -> bool:
 
 def is_top_player_in_clan(session: Session, player_id: int, clan_id: int) -> bool:
     """Check if player is top-1 in clan rating"""
+    logger.info(f"Checking if player {player_id} is top-1 in clan {clan_id}")
     top_player = session.query(PlayerClanRating).filter(
         PlayerClanRating.clan_id == clan_id
     ).order_by(

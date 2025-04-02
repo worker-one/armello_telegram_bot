@@ -104,6 +104,7 @@ def init_matches(db_session: Session, match_count=50):
             if player.id == 1155221348:
                 print('winner')
                 is_winner = True
+            #print(f"Match {i+1}: Player {player.username} with Hero {hero.name} is {'winner' if is_winner else 'loser'}")
             participant = MatchParticipant(
                 match_id=match.id,
                 player_id=player.id,
@@ -113,10 +114,14 @@ def init_matches(db_session: Session, match_count=50):
                 score=4 if is_winner else -1
             )
             db_session.add(participant)
+            db_session.flush()  # Get participant.id
+            # commit after each participant to avoid memory issues
+            if j % 4 == 0:
+                db_session.commit()
+    db_session.commit()
 
     #update_ratings_after_match(db_session, match)
 
-    db_session.commit()
 
 def init_test_data(db_session: Session):
     """Initialize all test data"""

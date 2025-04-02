@@ -3,8 +3,15 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from ..match.models import Clan, Player, Match
-from .models import GeneralClanRating, WinTypeEnum, GeneralHeroRating, PlayerClanRating, PlayerHeroRating, PlayerOverallRating
+from ..match.models import Clan, Match, Player
+from .models import (
+    GeneralClanRating,
+    GeneralHeroRating,
+    PlayerClanRating,
+    PlayerHeroRating,
+    PlayerOverallRating,
+    WinTypeEnum,
+)
 
 
 def update_player_ratings_for_match(db: Session, match, player_id: int):
@@ -75,6 +82,7 @@ def update_player_ratings_for_match(db: Session, match, player_id: int):
             losses=0, prestige_wins=0, murder_wins=0, stones_wins=0, decay_wins=0
         )
         db.add(ph)
+        db.flush()
     
     if participant.is_winner:
         ph.rating += winner_points

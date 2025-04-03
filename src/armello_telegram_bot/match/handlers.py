@@ -9,13 +9,12 @@ from telebot.apihelper import ApiTelegramException
 from telebot.states import State, StatesGroup
 
 from ..auth.service import read_user
-from ..common.service import start_timeout, user_messages
 from ..database.core import db_session
 from ..rating import service as rating_service
 from ..title import service as title_service
 from .models import Hero, Player
 from .schemas import MatchCreate, ParticipantCreate
-from .service import create_match, read_hero, read_player
+from .service import create_match, read_hero, read_player, remove_match
 from .markup import create_win_type_markup
 
 logger = logging.getLogger(__name__)
@@ -48,6 +47,27 @@ match_timeout_timers = {}
 def register_handlers(bot: TeleBot):
     """Register match handlers"""
     logger.info("Registering match handlers")
+
+    @bot.message_handler(commands=["deny"])
+    def deny_command(message: types.Message, data: dict):
+        """ Remove match report """
+        user = data["user"]
+        # Check if user is admin (channel owner)
+        is_admin = user.role_id in {0, 1}
+        if not is_admin:
+            bot.reply_to(message, "This command is only available to admins.")
+            return
+
+        match_id = message.text.split()[1] if len(message.text.split()) > 1 else None
+        if not match_id:
+            bot.reply_to(message, "Please provide a match ID.")
+            return
+        else:
+            response = remove_match(db_session, match_id)
+            if response:
+                bot.reply_to(message, f"Match {match_id} removed successfully.")
+            else:
+                bot.reply_to(message, f"Match {match_id} not found.")
 
     @bot.message_handler(commands=["match"])
     def start_match_report(message: types.Message, data: dict):
@@ -373,15 +393,8 @@ def register_handlers(bot: TeleBot):
                 "decay": "Гниль",
                 "stones": "Камни Духа"
             }.get(win_type, win_type.capitalize())
-            
-            # Generate match ID (in a real implementation, this would be from DB)
-            # Using timestamp as temporary ID
-            match_id = str(int(time.time()))[-6:]
-            data["state"].add_data(match_id=match_id)
-            
-            # Create summary
-            summary = f"Матч №{match_id}\n"
-            summary += f"Победы через {win_type_display}\n\n"
+
+            summary = f"Победа через {win_type_display}\n\n"
             
             # Add player info
             for username in players:
@@ -485,7 +498,7 @@ def register_handlers(bot: TeleBot):
             }.get(win_type, win_type.capitalize())
 
             final_report = f"Матч №{match_id}\n"
-            final_report += f"Победы через {win_type_display}\n\n"
+            final_report += f"Победа через {win_type_display}\n\n"
 
             for username in players:
                 hero_id = hero_selection.get(username)
@@ -496,6 +509,8 @@ def register_handlers(bot: TeleBot):
 
             # Update the message without buttons
             try:
+                match_id = match.id
+                final_report = f"Матч №{match_id}\n\n" + final_report
                 bot.edit_message_caption(
                     caption=final_report,
                     chat_id=call.message.chat.id,

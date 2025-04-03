@@ -18,9 +18,7 @@ from .service import (
     get_top_heroes,
     get_top_clans,
     get_player_clan_ratings,
-    get_player_hero_ratings,
-    get_win_type_distribution,
-    get_player_position
+    get_player_hero_ratings
 )
 from ..rating.service import read_clans
 from ..title import service as title_service

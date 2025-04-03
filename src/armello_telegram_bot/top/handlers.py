@@ -5,24 +5,16 @@ from omegaconf import OmegaConf
 from telebot import TeleBot, types
 from telebot.states import State, StatesGroup
 
-from ..common.service import cancel_timeout, start_timeout, user_messages
+from ..common.service import cancel_timeout, user_messages
 from ..database.core import db_session
 from ..herorating import service as hero_service
-from ..match.models import Clan, Hero
+from ..rating.service import read_clans
+from ..title import service as title_service
 from .markup import (
     create_clan_selection_markup,
     create_top_selection_markup,
 )
-from .service import (
-    get_top_players,
-    get_top_heroes,
-    get_top_clans,
-    get_player_clan_ratings,
-    get_player_hero_ratings
-)
-from ..rating.service import read_clans
-from ..title import service as title_service
-
+from .service import get_player_clan_ratings, get_player_hero_ratings, get_top_clans, get_top_heroes, get_top_players
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

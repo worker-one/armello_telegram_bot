@@ -497,8 +497,7 @@ def register_handlers(bot: TeleBot):
                 "stones": "Камни Духа"
             }.get(win_type, win_type.capitalize())
 
-            final_report = f"Матч №{match_id}\n"
-            final_report += f"Победа через {win_type_display}\n\n"
+            final_report = f"Победа через {win_type_display}\n\n"
 
             for username in players:
                 hero_id = hero_selection.get(username)

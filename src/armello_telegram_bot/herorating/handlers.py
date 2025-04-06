@@ -28,7 +28,7 @@ def register_handlers(bot: TeleBot):
     logger.info("Registering hero rating handlers")
 
     @bot.message_handler(commands=['herorating'])
-    def start_herorating(message):
+    def start_herorating(message, data: dict):
         """Start the hero rating process"""
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("Выход", callback_data="exit_herorating"))

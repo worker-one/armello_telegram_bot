@@ -39,7 +39,7 @@ class UserMessageMiddleware(BaseMiddleware):
             return
 
         event = create_event(
-            db_session, user_id=user.id,
+            db_session, user_id=user.id, chat_id=message.chat.id,
             content=message.text, content_type=message.content_type,
             event_type="message", state=data["state"].get()
         )
@@ -79,7 +79,7 @@ class UserCallbackMiddleware(BaseMiddleware):
             return
 
         event = create_event(
-            db_session, user_id=user.id,
+            db_session, user_id=user.id, chat_id=callback_query.message.chat.id,
             content=callback_query.data, content_type="callback_data", event_type="callback",
             state=data["state"].get()
         )

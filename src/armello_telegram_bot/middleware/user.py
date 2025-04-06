@@ -45,7 +45,7 @@ class UserMessageMiddleware(BaseMiddleware):
         )
 
         # Log event to the console
-        print(f"message_thread_id: {message.message_thread_id}"}
+        print(f"message_thread_id: {message.message_thread_id}")
         logger.info(event.dict())
 
         # Set the user data to the data dictionary

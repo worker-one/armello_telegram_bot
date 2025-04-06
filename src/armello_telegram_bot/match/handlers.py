@@ -416,6 +416,7 @@ def register_handlers(bot: TeleBot):
                     message.chat.id,
                     screenshot,
                     caption=f"{summary}\n\nВсе верно?",
+                    reply_to_message_id=message.message_id,
                     reply_markup=markup
                 )
             except ApiTelegramException:

@@ -45,7 +45,7 @@ class UserMessageMiddleware(BaseMiddleware):
         )
 
         # Log event to the console
-        if message.message_thread_id not in {13183, 13186}:
+        if message.is_topic_message and message.message_thread_id not in {13183, 13186}:
             return CancelUpdate()
         logger.info(event.dict())
 

@@ -47,8 +47,8 @@ def register_handlers(bot: TeleBot):
         markup = create_clan_selection_menu_markup(user.lang, clans)
 
         # Send message with keyboard
-        sent_message = bot.send_message(
-            chat_id,
+        sent_message = bot.reply_to(
+            message,
             strings[user.lang].welcome_message,
             reply_markup=markup
         )

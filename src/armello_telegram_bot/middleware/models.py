@@ -11,6 +11,7 @@ class Event(Base, TimeStampMixin):
 
     id = Column(Integer, primary_key=True)
     user_id = Column(BigInteger, ForeignKey(User.id))
+    chat_id = Column(BigInteger, nullable=True)
     event_type = Column(String)
     state = Column(String, nullable=True)
     content_type = Column(String)
@@ -21,6 +22,7 @@ class Event(Base, TimeStampMixin):
         return {
             "timestamp": self.created_at.strftime("%Y-%m-%d %H:%M"),
             "user_id": self.user_id,
+            "chat_id": self.chat_id,
             "event_type": self.event_type,
             "state": self.state,
             "content": self.content,

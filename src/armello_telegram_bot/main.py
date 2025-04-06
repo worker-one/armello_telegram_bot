@@ -141,7 +141,7 @@ def init_db():
     # init_test_data(db_session)
     #init_rating_test_data(db_session)
     init_titles(db_session)
-    init_custom_titles(db_session)
+    # init_custom_titles(db_session)
     # init_hero_rating_table(db_session)
     # init_clans_and_heroes(db_session)
 

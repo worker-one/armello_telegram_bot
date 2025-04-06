@@ -54,7 +54,7 @@ def create_clan_selection_markup(lang: str, clans: list[Clan]) -> types.InlineKe
     for clan in clans:
         markup.add(
             types.InlineKeyboardButton(
-                text=f"Клан {clan.name}",
+                text=clan.name,
                 callback_data=f"top_clan_{clan.id}"
             )
         )

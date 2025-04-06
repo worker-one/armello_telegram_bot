@@ -26,13 +26,13 @@ def read_hero(db: Session, hero_name: str) -> Hero:
 
     # Try to find closest match in names or aliases
     search_term = hero_name.lower()
-    matches = get_close_matches(search_term, hero_names + hero_aliases, n=1, cutoff=0.6)
+    matches = get_close_matches(search_term, hero_names + hero_aliases, n=1, cutoff=0.4)
 
     if matches:
         closest_match = matches[0]
         # Find hero with matching name or alias
         return db.query(Hero).filter(
-            (Hero.name.ilike(closest_match)) | 
+            (Hero.name.ilike(closest_match)) |
             (Hero.alias.ilike(closest_match))
         ).first()
 
@@ -43,13 +43,8 @@ def get_hero_stats(db_session: Session, hero_id: int):
     """
     Get or create hero stats
     """
-    try:
-        stats = db_session.query(HeroStats).filter(HeroStats.hero_id == hero_id).one()
-        return stats
-    except NoResultFound:
-        # Calculate stats from match data
-        stats = calculate_hero_stats(db_session, hero_id)
-        return stats
+    stats = calculate_hero_stats(db_session, hero_id)
+    return stats
 
 def calculate_hero_stats(db_session: Session, hero_id: int):
     """
@@ -64,6 +59,9 @@ def calculate_hero_stats(db_session: Session, hero_id: int):
     # Calculate stats
     total_matches = len(participations)
     total_wins = sum(1 for p in participations if p.is_winner)
+    
+    # Clalculate score as a sum of all participants' scores for the hero
+    score = sum(p.score for p in participations)
     
     # Calculate wins by type
     win_types = {
@@ -84,6 +82,7 @@ def calculate_hero_stats(db_session: Session, hero_id: int):
         stats = HeroStats(
             hero_id=hero_id,
             total_matches=total_matches,
+            score=score,
             total_wins=total_wins,
             prestige_wins=win_types[WinTypeEnum.prestige],
             murder_wins=win_types[WinTypeEnum.murder],
@@ -92,7 +91,15 @@ def calculate_hero_stats(db_session: Session, hero_id: int):
         )
         db_session.add(stats)
         db_session.commit()
-    
+    else:
+        stats.total_matches = total_matches
+        stats.score = score
+        stats.total_wins = total_wins
+        stats.prestige_wins = win_types[WinTypeEnum.prestige]
+        stats.murder_wins = win_types[WinTypeEnum.murder]
+        stats.decay_wins = win_types[WinTypeEnum.decay]
+        stats.stones_wins = win_types[WinTypeEnum.stones]
+        db_session.commit()
     return stats
 
 def format_hero_stats(hero, stats):
@@ -101,7 +108,7 @@ def format_hero_stats(hero, stats):
     """
     winrate = 0 if stats.total_matches == 0 else (stats.total_wins / stats.total_matches) * 100
     
-    message = f"Общий рейтинг героя {hero.name}:\n\n"
+    message = f"Общий рейтинг героя {hero.name}: {stats.score}\n\n"
     message += f"Победы: {stats.total_wins}\n"
     message += f"Поражения: {stats.total_matches - stats.total_wins}\n"
     message += f"Винрейт: {winrate:.1f}%\n\n"

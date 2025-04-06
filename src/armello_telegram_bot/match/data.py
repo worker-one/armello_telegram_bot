@@ -2,16 +2,18 @@ import random
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from .models import Clan, Hero, Player, Match, MatchParticipant, WinTypeEnum
+from ..rating.service import update_ratings_after_match
+
 
 def init_clans_and_heroes(db_session: Session):
     # Define clans and their heroes with aliases
     clans_data = {
-        ("Wolf Clan", "Волки"): [("Thane", "Тейн"), ("River", "Ривер"), ("Fang", "Фанг"), ("Magna", "Магна")],
-        ("Rabbit Clan", "Кролики"): [("Amber", "Эмбер"), ("Barnaby", "Барнаби"), ("Hargrave", "Харгрейв"), ("Elyssia", "Элиссия")],
-        ("Rat Clan", "Крысы"): [("Mercurio", "Меркурио"), ("Zosha", "Зоша"), ("Griotte", "Гриот"), ("Sargon", "Саргон")],
-        ("Bear Clan", "Медведи"): [("Sana", "Сана"), ("Brun", "Брун"), ("Ghor", "Гор"), ("Yordana", "Йордана")],
-        ("Bandit Clan", "Разбойники"): [("Twiss", "Твисс"), ("Horace", "Хорас"), ("Scarlet", "Скарлет"), ("Sylas", "Сайлас")],
-        ("Dragon Clan", "Драконы"): [("Volodar", "Володар"), ("Agniya", "Агния"), ("Oxana", "Оксана"), ("Nazar", "Назар")]
+        ("Wolf Clan", "Клан Волков"): [("Thane", "Тейн"), ("River", "Ривер"), ("Fang", "Фанг"), ("Magna", "Магна")],
+        ("Rabbit Clan", "Клан Кроликов"): [("Amber", "Эмбер"), ("Barnaby", "Барнаби"), ("Hargrave", "Харгрейв"), ("Elyssia", "Элиссия")],
+        ("Rat Clan", "Клан Крыс"): [("Mercurio", "Меркурио"), ("Zosha", "Зоша"), ("Griotte", "Гриот"), ("Sargon", "Саргон")],
+        ("Bear Clan", "Клан Медведей"): [("Sana", "Сана"), ("Brun", "Брун"), ("Ghor", "Гор"), ("Yordana", "Йордана")],
+        ("Bandit Clan", "Клан Разбойников"): [("Twiss", "Твисс"), ("Horace", "Хорас"), ("Scarlet", "Скарлет"), ("Sylas", "Сайлас")],
+        ("Dragon Clan", "Клан Драконов"): [("Volodar", "Володар"), ("Agniya", "Агния"), ("Oxana", "Оксана"), ("Nazar", "Назар")]
     }
 
     # Create and add clans and heroes
@@ -29,7 +31,7 @@ def init_clans_and_heroes(db_session: Session):
     # Commit all changes
     db_session.commit()
 
-def init_players(db_session: Session, count=10):
+def init_players(db_session: Session, count=5):
     """Initialize test players"""
     usernames = [f"player{i}" for i in range(1, count + 1)]
     
@@ -43,6 +45,18 @@ def init_players(db_session: Session, count=10):
     player = Player(
         user_id=954020212,
         username="konverner"
+    )
+    db_session.add(player)
+    
+    player = Player(
+        user_id=1155221348,
+        username="comm0m"
+    )
+    db_session.add(player)
+    
+    player = Player(
+        user_id=7826381817,
+        username="spamhameggs"
     )
     db_session.add(player)
         
@@ -75,30 +89,38 @@ def init_matches(db_session: Session, match_count=50):
         )
         db_session.add(match)
         db_session.flush()  # Get match.id
-        
+
         # Select 4 random players for this match
         match_players = random.sample(players, 4)
         # Select 4 random heroes for this match (no duplicates)
         match_heroes = random.sample(heroes, 4)
-        
+
         # Randomly select a winner
         winner_index = random.randint(0, 3)
-        
+
         # Create participants
         for j, (player, hero) in enumerate(zip(match_players, match_heroes)):
             is_winner = (j == winner_index)
-            if player.id == 954020212:
+            if player.id == 1155221348:
+                print('winner')
                 is_winner = True
             participant = MatchParticipant(
                 match_id=match.id,
                 player_id=player.id,
                 hero_id=hero.id,
                 is_winner=is_winner,
-                win_type=win_type if is_winner else None
+                win_type=win_type if is_winner else None,
+                score=4 if is_winner else -1
             )
             db_session.add(participant)
-    
+            db_session.flush()  # Get participant.id
+            # commit after each participant to avoid memory issues
+            if j % 4 == 0:
+                db_session.commit()
     db_session.commit()
+
+    #update_ratings_after_match(db_session, match)
+
 
 def init_test_data(db_session: Session):
     """Initialize all test data"""
@@ -112,7 +134,7 @@ def init_test_data(db_session: Session):
     player_count = db_session.query(Player).count()
     if player_count == 0:
         print("Initializing players...")
-        init_players(db_session, count=10)
+        init_players(db_session, count=2)
     
     match_count = db_session.query(Match).count()
     if match_count == 0:

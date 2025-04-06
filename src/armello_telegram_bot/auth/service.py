@@ -196,3 +196,23 @@ def upsert_user(
     finally:
         db_session.close()
     return user
+
+
+def is_admin(user: User) -> bool:
+    """Check if user is admin"""
+    return user.role_id == 0 or user.role_id == 1
+
+
+def grant_admin(db_session: Session, user: User) -> None:
+    """Grant admin privileges to user"""
+    user.role_id = 1
+    try:
+        db_session.add(user)
+        db_session.commit()
+        logger.info(f"User {user.username} granted admin privileges.")
+    except Exception as e:
+        db_session.rollback()
+        logger.error(f"Error granting admin privileges to user {user.username}: {e}")
+        raise
+    finally:
+        db_session.close()

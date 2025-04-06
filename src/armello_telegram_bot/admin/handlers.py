@@ -9,8 +9,11 @@ from pathlib import Path
 from omegaconf import OmegaConf
 from telebot.types import CallbackQuery, Message
 
+from ..database.core import db_session
 from ..database.core import export_all_tables
 from .markup import create_admin_menu_markup
+from ..title.service import update_title_for_all_players
+from ..rating.service import rebuild_all_ratings
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -41,6 +44,31 @@ def register_handlers(bot):
             app_strings[user.lang].menu.title,
             reply_markup=create_admin_menu_markup(user.lang)
         )
+
+    @bot.message_handler(commands=["update"])
+    def update_command(message: Message, data: dict):
+        sent_message = bot.reply_to(
+            message,
+            text="Рейтинг игроков обновляется. Пожалуйста, подождите..."
+        )
+        rebuild_all_ratings(db=db_session)
+        bot.edit_message_text(
+            chat_id=sent_message.chat.id,
+            message_id=sent_message.message_id,
+            text="Рейтинг игроков обновлен."
+        )
+
+        sent_message = bot.reply_to(
+            message,
+            text="Титулы игроков обновляется. Пожалуйста, подождите..."
+        )
+        update_title_for_all_players(session=db_session)
+        bot.edit_message_text(
+            chat_id=sent_message.chat.id,
+            message_id=sent_message.message_id,
+            text="Титулы игроков обновлены."
+        )
+
 
     @bot.callback_query_handler(func=lambda call: call.data == "admin")
     def admin_menu_handler(call: CallbackQuery, data: dict):

@@ -14,7 +14,7 @@ from telebot.types import CallbackQuery, Message
 from ..admin.markup import create_admin_menu_markup
 from ..auth.models import User
 from ..auth.service import read_users
-from ..database.core import get_session
+from ..database.core import db_session
 from .markup import create_cancel_button, create_keyboard_markup
 from .service import cancel_scheduled_message, list_scheduled_messages, send_scheduled_message
 
@@ -154,7 +154,7 @@ def get_message_content(message: Message, bot: TeleBot, user: User, user_data: d
             "jobs": [],
         }
         print(f"Created message: {message_id}")
-        db_session = get_session()
+         
         target_users = read_users(db_session)
         for target_user in target_users:
             # add random delay to avoid spamming

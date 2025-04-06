@@ -1,167 +1,216 @@
 import logging
-from typing import List, Optional, Tuple
+from typing import List, Optional, Dict
 
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
-from ..match.models import Clan, Player
-from ..rating.models import PlayerClanRating, PlayerOverallRating
+from ..match.models import Clan, Player, Hero
+from ..rating.models import PlayerClanRating, PlayerOverallRating, PlayerHeroRating
 from .models import Title
 
 logger = logging.getLogger(__name__)
 
+# Define clan categories constants
 CLAN_CATEGORIES = {
-    'wolf': 'Волки',
-    'rabbit': 'Кролики',
-    'rat': 'Крысы',
-    'bear': 'Медведи',
-    'bandit': 'Разбойники',
-    'dragon': 'Драконы'
+    "overall": "Лучший игрок комьюнити",
+    "wolf": "Клан Волков",
+    "rabbit": "Клан Кроликов",
+    "rat": "Клан Крыс",
+    "bear": "Клан Медведей",
+    "bandit": "Клан Разбойников",
+    "dragon": "Клан Драконов"
 }
+
+CATEGORY_TO_CLAN_ID = {
+    "wolf": 1,
+    "rabbit": 2,
+    "rat": 3,
+    "bear": 4,
+    "bandit": 5,
+    "dragon": 6,
+}
+
+def read_clans(session: Session) -> List[Clan]:
+    """Read all clans from the database"""
+    clans = session.query(Clan).all()
+    return clans
 
 def read_clan_title(session: Session, clan_id: str) -> Title:
     """Read the title of the clan"""
     title = session.query(Title).filter(Title.clan_id == clan_id).first()
     return title
 
-
 def is_top_player_overall(session: Session, player_id: int) -> bool:
-    """Check if the player is #1 in the overall rating"""
-    top_player = session.query(PlayerOverallRating)\
-        .order_by(desc(PlayerOverallRating.rating))\
-        .first()
-
-    return top_player is not None and top_player.player_id == player_id
-
-
-def is_top_player_in_clan(session: Session, player_id: int, clan_name: str) -> bool:
-    """Check if the player is #1 in the specified clan"""
-    logger.debug(f"Checking if player {player_id} is top in clan {clan_name}")
+    """Check if player is top-1 in overall rating"""
+    top_player = session.query(PlayerOverallRating).order_by(
+        desc(PlayerOverallRating.rating)
+    ).first()
     
-    clan = session.query(Clan).filter(Clan.name == clan_name).first()
-    if not clan:
-        logger.info(f"Clan {clan_name} not found")
-        return False
-    
-    top_player = session.query(PlayerClanRating)\
-        .filter(PlayerClanRating.clan_id == clan.id)\
-        .order_by(desc(PlayerClanRating.rating))\
-        .first()
-    
-    is_top = top_player is not None and top_player.player_id == player_id
-    logger.info(f"Player {player_id} is{' ' if is_top else ' not '}top in clan {clan_name}")
-    return is_top
+    return top_player and top_player.player_id == player_id
 
-
-def get_title(session: Session, category: str) -> Optional[str]:
-    """Get the current title for a category"""
-    title = session.query(Title).filter(Title.category == category).first()
-    if not title:
-        # Create default title if none exists
-        default_title = "Best Player" if category == "overall" else f"Best {category.capitalize()} Player"
-        title = Title(category=category, title=default_title)
-        session.add(title)
-        session.commit()
+def is_top_player_in_clan(session: Session, player_id: int, clan_id: int) -> bool:
+    """Check if player is top-1 in clan rating"""
+    logger.info(f"Checking if player {player_id} is top-1 in clan {clan_id}")
+    top_player = session.query(PlayerClanRating).filter(
+        PlayerClanRating.clan_id == clan_id
+    ).order_by(
+        desc(PlayerClanRating.rating)
+    ).first()
     
-    return title.title
+    return top_player and top_player.player_id == player_id
 
-
-def update_title(session: Session, category: str, new_title: str) -> None:
-    """Update or create a title for a category"""
-    title = session.query(Title).filter(Title.category == category).first()
+def get_available_titles(session: Session, player_id: int, is_admin: bool) -> Dict[str, str]:
+    """Get titles available for a player based on their rankings"""
+    available_titles = {}
     
-    if title:
-        title.title = new_title
-    else:
-        title = Title(category=category, title=new_title)
-        session.add(title)
-    
-    session.commit()
-
-
-def get_available_titles(
-    session: Session, player_id: int,
-    is_channel_owner: bool
-    ) -> List[Tuple[str, str]]:
-    """Get list of titles available for the player to change
-    
-    Returns a list of tuples: (category, display_name)
-    """
-    available_titles = []
-    
-    # Channel owner can change any title
-    if is_channel_owner:
-        available_titles.append(("overall", "Лучший игрок комьюнити"))
-        for cat_id, cat_name in CLAN_CATEGORIES.items():
-            available_titles.append((cat_id, cat_name))
-        return available_titles
+    # If player is admin, they can edit all titles
+    if is_admin:
+        return CLAN_CATEGORIES
     
     # Check if player is top in overall rating
     if is_top_player_overall(session, player_id):
-        available_titles.append(("overall", "Лучший игрок комьюнити"))
+        available_titles["overall"] = CLAN_CATEGORIES["overall"]
     
-    # Check for each clan
-    for cat_id, cat_name in CLAN_CATEGORIES.items():
-        if is_top_player_in_clan(session, player_id, cat_name):
-            available_titles.append((cat_id, cat_name))
-
+    # Check clan ratings
+    for category, clan_id in CATEGORY_TO_CLAN_ID.items():
+        if is_top_player_in_clan(session, player_id, clan_id):
+            available_titles[category] = CLAN_CATEGORIES[category]
+    
     return available_titles
 
 
-def assign_title_to_player(session: Session, player_id: int, category: str) -> bool:
-    """
-    Assign a title to a player by adding a record to the player_titles table
-    
-    Args:
-        session: Database session
-        player_id: Player ID to assign the title to
-        category: Title category ('overall', 'wolf', 'rabbit', etc.)
-        
-    Returns:
-        bool: True if title was successfully assigned, False otherwise
-    """
-    logger.debug(f"Assigning {category} title to player {player_id}")
-    
-    player = session.query(Player).filter(Player.id == player_id).first()
-    if not player:
-        logger.error(f"Player with ID {player_id} not found")
-        return False
-    
-    title = session.query(Title).filter(Title.category == category).first()
-    if not title:
-        logger.info(f"Title for category {category} not found, creating default")
-        default_title = "Best Player" if category == "overall" else f"Best {category.capitalize()} Player"
-        title = Title(category=category, title=default_title)
+def get_title(session: Session, category: str, clan_id: Optional[int] = None) -> Optional[Title]:
+    """Get title for a specific category"""
+    return session.query(Title).filter(
+            Title.category == category,
+            Title.clan_id == clan_id
+        ).first()
+
+
+def update_title(session: Session, category: str, title_text: str, clan_id: Optional[int] = None) -> Title:
+    """Update or create a title for a specific category"""
+    title = get_title(session, category, clan_id)
+
+    if title:
+        title.title = title_text
+        title.default = False
+    else:
+        title = Title(
+            category=category,
+            clan_id=clan_id,
+            title=title_text,
+            default=False
+        )
         session.add(title)
-        session.flush()
-    
-    # Check if player already has this title
-    if title in player.titles:
-        logger.info(f"Player {player_id} already has title {category}")
-        return True
-    
-    # Assign title to player
-    player.titles.append(title)
     session.commit()
-    logger.info(f"Successfully assigned {category} title to player {player_id}")
-    return True
+    return title
 
 
+def update_player_titles(session: Session, user_id: int):
+    """Update player titles based on their rankings"""
+    print("Starting update_player_titles for user_id:", user_id)
+    
+    # Find the player associated with this user_id
+    player = session.query(Player).filter(Player.user_id == user_id).first()
+    if not player:
+        logger.warning(f"No player found for user_id {user_id}")
+        return
 
-def update_titles_after_match(db_session: Session):
-    """ Updata associative table 
-    titles = Table(
-    'player_titles',
-    Base.metadata,
-    Column('player_id', Integer, ForeignKey('players.id')),
-    Column('title_id', Integer, ForeignKey('titles.id'))
-)
-    """
-    players = db_session.query(Player).all()
-    for player in players:
-        available_titles = get_available_titles(db_session, player.id, False)
-        for category, display_name in available_titles:
-            assign_title_to_player(
-                db_session, player.id, category
+    print(f"Found player with id: {player.id}")
+
+    # Get current titles assigned to this player
+    current_titles = session.query(Title).filter(Title.player_id == player.id).all()
+    current_title_categories = {title.category for title in current_titles}
+    
+    print(f"Current titles for player {player.id}: {current_title_categories}")
+    
+    # Check if player deserves overall title (top player overall)
+    deserves_overall_title = is_top_player_overall(session, player.id)
+    print(f"Deserves overall title: {deserves_overall_title}")
+    
+    # If player deserves overall title but doesn't have it yet
+    if deserves_overall_title and "overall" not in current_title_categories:
+        print("Processing overall title assignment")
+        # Get or create the overall title
+        overall_title = get_title(session, "overall")
+        if not overall_title:
+            print("Creating new overall title")
+            # Create default overall title if it doesn't exist
+            overall_title = Title(
+                category="overall",
+                clan_id=None,
+                title="Лучший игрок комьюнити",
+                default=True
             )
-    db_session.commit()
+            session.add(overall_title)
+            session.flush()
+        
+        # Assign this title to the player
+        overall_title.player_id = player.id
+        if not overall_title.player:
+            overall_title.player.append(player)
+            print("Overall title assigned to player")
+    
+    # If player no longer deserves overall title but still has it
+    elif not deserves_overall_title and "overall" in current_title_categories:
+        print("Removing overall title from player")
+        # Find and remove the overall title from player
+        overall_title = next((t for t in current_titles if t.category == "overall"), None)
+        if overall_title:
+            if not overall_title.player:
+                overall_title.player.remove(player)
+            overall_title.player_id = None
+    
+    # Check clan titles
+    for category, clan_id in CATEGORY_TO_CLAN_ID.items():
+        print(f"\nChecking clan title for category: {category}, clan_id: {clan_id}")
+        deserves_clan_title = is_top_player_in_clan(session, player.id, clan_id)
+        print(f"Deserves {category} clan title: {deserves_clan_title}")
+        
+        # If player deserves clan title but doesn't have it
+        if deserves_clan_title and category not in current_title_categories:
+            print(f"Assigning {category} clan title")
+            clan_title = get_title(session, category=category, clan_id=clan_id)
+            if not clan_title:
+                # Get clan name for the default title
+                clan = session.query(Clan).filter(Clan.id == clan_id).first()
+                clan_name = clan.name if clan else CLAN_CATEGORIES.get(category, category.capitalize())
+                print(f"Creating new clan title for {clan_name}")
+                
+                # Create default clan title
+                clan_title = Title(
+                    category=category,
+                    clan_id=clan_id,
+                    title=f"Лучший {clan_name}",
+                    default=True
+                )
+                session.add(clan_title)
+                session.flush()
+            
+            # Assign this title to the player
+            clan_title.player_id = player.id
+            if not clan_title.player:
+                clan_title.player.append(player)
+                print(f"Clan title {category} assigned to player")
+        
+        # If player no longer deserves clan title but still has it
+        elif not deserves_clan_title and category in current_title_categories:
+            print(f"Removing {category} clan title from player")
+            clan_title = next((t for t in current_titles if t.category == category), None)
+            if clan_title:
+                if not clan_title.player:
+                    clan_title.player.remove(player)
+                clan_title.player_id = None
+
+    print("Committing changes to database")
+    # Commit all changes
+    session.commit()
+    print("Title update completed")
+
+def update_title_for_all_players(session: Session):
+    """Update titles for all players"""
+    players = session.query(Player).all()
+    for player in players:
+        update_player_titles(session, player.user_id)
+    logger.info(f"Updated titles for all players")
+    session.commit()

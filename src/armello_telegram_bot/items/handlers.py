@@ -5,7 +5,7 @@ from omegaconf import OmegaConf
 from telebot import TeleBot, types
 from telebot.states import State, StatesGroup
 
-from ..database.core import get_session
+from ..database.core import db_session
 from ..menu.markup import create_menu_markup
 from .markup import create_cancel_button, create_item_menu_markup, create_items_list_markup, create_items_menu_markup
 from .service import (
@@ -24,9 +24,6 @@ logger.setLevel(logging.INFO)
 CURRENT_DIR = Path(__file__).parent
 config = OmegaConf.load(CURRENT_DIR / "config.yaml")
 strings = config.strings
-
-# Load the database session
-db_session = get_session()
 
 # Define States
 class ItemState(StatesGroup):

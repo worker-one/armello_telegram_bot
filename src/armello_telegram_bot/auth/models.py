@@ -32,7 +32,7 @@ class User(Base):
     role_id = Column(Integer, ForeignKey("roles.id"), default=2)
     is_blocked = Column(Boolean, default=False)
 
-    role = relationship("Role", backref="users", lazy="joined")
+    role = relationship("Role", backref="users", lazy="joined", foreign_keys=[role_id])
     player = relationship("Player", back_populates="user")
 
 

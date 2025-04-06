@@ -8,16 +8,13 @@ from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
-from ..auth.models import Base, Role
+from ..auth.models import Base
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
+logging.getLogger('sqlalchemy.engine.Engine').setLevel(logging.WARN)
 logger = logging.getLogger(__name__)
 
-
-# Load logging configuration with OmegaConf
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 load_dotenv(find_dotenv(usecwd=True))
 
@@ -28,8 +25,9 @@ DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 
+print(DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD)
 # Check if any of the required environment variables are not set
-if not all([DB_HOST, DB_NAME, DB_USER, DB_PASSWORD]):
+if not all([DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT]):
     logger.warning("One or more postgresql database environment variables are not set. Using SQLite instead.")
     DATABASE_URL = "sqlite:///local_database.db"
 else:
@@ -84,7 +82,7 @@ def export_all_tables(export_dir: str):
     db.close()
 
 # Create engine and session factory
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Dependency function
@@ -97,5 +95,5 @@ def get_db():
 
 # Start a new session
 Session = sessionmaker(bind=engine)
-session = Session()
+db_session = Session()
 

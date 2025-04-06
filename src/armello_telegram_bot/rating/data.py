@@ -41,7 +41,7 @@ def init_rating_test_data(db_session: Session):
                 wins=wins,
                 losses=losses
             ))
-    
+
     # Create player clan ratings
     for player in players:
         # Each player has ratings for 2-4 random clans
@@ -49,7 +49,7 @@ def init_rating_test_data(db_session: Session):
             wins = random.randint(0, 20)
             losses = random.randint(0, 15)
             rating = 1000 + (wins * 25) - (losses * 20)
-            
+
             db_session.add(PlayerClanRating(
                 player_id=player.id,
                 clan_id=clan.id,
@@ -58,7 +58,7 @@ def init_rating_test_data(db_session: Session):
                 wins=wins,
                 losses=losses
             ))
-    
+
     # Create general hero ratings
     for hero in heroes:
         wins = random.randint(5, 50)

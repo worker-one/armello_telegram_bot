@@ -2,26 +2,56 @@ app:
   name: "items"
 strings:
     ru:
-      mention_player: "О каком игроке вы хотите получить информацию? Упомяните его, используя @"
+      mention_player: "О каком игроке вы хотите получить информацию? Упомяните его с @, используя «Ответить» на это сообщение."
       mention_player_prompt: "Пожалуйста, упомяните игрока, используя символ @"
       invalid_mention: "Пожалуйста, упомяните действительного игрока, используя символ @"
-      player_not_found: "Игрок не найден. Пожалуйста, попробуйте еще раз с действительным именем пользователя."
+      player_not_found: "Информация по данному игроку отсуствует."
       select_rating_type: "Какой именно рейтинг вас интересует?"
       overall_rating: "Общий рейтинг"
       hero_rating: "Рейтинг на герое"
       clan_rating: "Рейтинг в клане"
       other_player: "Другой игрок"
-      finish: "Закончить"
+      delete: "Закончить"
       back: "Назад"
-      enter_hero_name: "Какой герой вас интересует?"
+      enter_hero_name: "Введите имя героя, используя «Ответить» на это сообщение."
       hero_not_found: "Герой не найден. Пожалуйста, попробуйте еще раз с действительным именем героя."
       select_clan: "Выберите клан:"
-      player_overall_rating: "Рейтинг игрока @{username}:\nОбщий рейтинг: {rating}\nПобед: {wins}\nПоражений: {losses}\nПроцент побед: {win_rate}\n\nТитулы: {titles}"
-      player_hero_rating: "Рейтинг игрока @{username} на герое {hero_name}:\nРейтинг: {rating}\nПобед: {wins}\nПоражений: {losses}\nПроцент побед: {win_rate}"
-      player_clan_rating: "Рейтинг игрока @{username} в клане {clan_name}:\nРейтинг: {rating}\nПобед: {wins}\nПоражений: {losses}\nПроцент побед: {win_rate}"
+      player_overall_rating: |
+        Рейтинг игрока @{username}:
+        Общий рейтинг: {rating}
+        Побед: {wins}
+        Поражений: {losses}
+        Винрейт: {win_rate}
+
+        Победы через престиж: {prestige_wins}
+        Победы через убийство Короля: {murder_wins}
+        Победы через Гниль: {decay_wins}
+        Победы через Камни духа: {stones_wins}
+        
+        Титулы: {titles}
+      player_hero_rating: |
+        Рейтинг игрока @{username} на герое {hero_name}: {rating}
+        Побед: {wins}
+        Поражений: {losses}
+        Процент побед: {win_rate}
+
+        Победы через престиж: {prestige_wins}
+        Победы через убийство Короля: {murder_wins}
+        Победы через Гниль: {decay_wins}
+        Победы через Камни духа: {stones_wins}
+      player_clan_rating: |
+        Рейтинг игрока @{username} в клане {clan_name}: {rating}
+        Побед: {wins}
+        Поражений: {losses}
+        Процент побед: {win_rate}
+
+        Победы через престиж: {prestige_wins}
+        Победы через убийство Короля: {murder_wins}
+        Победы через Гниль: {decay_wins}
+        Победы через Камни духа: {stones_wins}
       no_rating_data: "У игрока @{username} пока нет данных о рейтинге."
       no_hero_rating_data: "Игрок @{username} еще не играл за героя {hero_name}."
-      no_clan_rating_data: "Игрок @{username} еще не играл за клан {clan_name}."
+      no_clan_rating_data: "Игрок @{username} еще не играл за {clan_name}."
       myrating_not_found: "У вас пока нет данных о рейтинге."
       no_titles: "Титулы отсутствуют."
       rating_cancelled: "До свидания!"

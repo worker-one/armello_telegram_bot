@@ -2,20 +2,20 @@ import logging
 import re
 import time
 from pathlib import Path
-from threading import Timer
 
 from omegaconf import OmegaConf
 from telebot import TeleBot, types
 from telebot.apihelper import ApiTelegramException
 from telebot.states import State, StatesGroup
 
-from ..database.core import get_session
 from ..auth.service import read_user
-from .models import Hero, Player
-from .schemas import MatchCreate, ParticipantCreate
-from .service import create_match, read_hero, read_player
+from ..database.core import db_session
 from ..rating import service as rating_service
 from ..title import service as title_service
+from .models import Hero, Player
+from .schemas import MatchCreate, ParticipantCreate
+from .service import create_match, read_hero, read_player, remove_match
+from .markup import create_win_type_markup
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -26,7 +26,7 @@ config = OmegaConf.load(CURRENT_DIR / "config.yaml")
 strings = config.strings
 
 # Load the database session
-db_session = get_session()
+ 
 
 # Define States
 class MatchState(StatesGroup):
@@ -48,41 +48,27 @@ def register_handlers(bot: TeleBot):
     """Register match handlers"""
     logger.info("Registering match handlers")
 
-    def cancel_match_due_to_timeout(chat_id, message_id, data):
-        """Cancel match creation due to timeout"""
-        # Check if the state is still active
-        if data["state"] and not data["state"].is_finished():
-            user = data.get("user")
-            lang = user.lang if user else "en"
+    @bot.message_handler(commands=["deny"])
+    def deny_command(message: types.Message, data: dict):
+        """ Remove match report """
+        user = data["user"]
+        # Check if user is admin (channel owner)
+        is_admin = user.role_id in {0, 1}
+        if not is_admin:
+            bot.reply_to(message, "This command is only available to admins.")
+            return
 
-            bot.send_message(
-                chat_id,
-                strings[lang].match_timeout,
-                reply_to_message_id=message_id
-            )
-            
-            # Reset the state
-            if data["state"]:
-                data["state"].delete()
-            
-            # Clean up the timer reference
-            if chat_id in match_timeout_timers:
-                del match_timeout_timers[chat_id]
+        match_id = message.text.split()[1] if len(message.text.split()) > 1 else None
+        if not match_id:
+            bot.reply_to(message, "Please provide a match ID.")
+            return
+        else:
+            response = remove_match(db_session, match_id)
+            if response:
+                bot.reply_to(message, f"Match {match_id} removed successfully.")
+            else:
+                bot.reply_to(message, f"Match {match_id} not found.")
 
-    def reset_timeout_timer(chat_id, message_id, data):
-        """Reset the timeout timer for the match report"""
-        # Cancel existing timer if any
-        if chat_id in match_timeout_timers and match_timeout_timers[chat_id]:
-            match_timeout_timers[chat_id].cancel()
-        
-        # Create a new timer (5 minutes timeout)
-        match_timeout_timers[chat_id] = Timer(
-            300,  # 5 minutes in seconds
-            cancel_match_due_to_timeout,
-            args=[chat_id, message_id, data]
-        )
-        match_timeout_timers[chat_id].start()
-    
     @bot.message_handler(commands=["match"])
     def start_match_report(message: types.Message, data: dict):
         """Start match report process"""
@@ -92,7 +78,7 @@ def register_handlers(bot: TeleBot):
             return
 
         user = data["user"]
-        msg = bot.reply_to(
+        sent_message = bot.reply_to(
             message,
             strings[user.lang].upload_screenshot_prompt
         )
@@ -101,11 +87,11 @@ def register_handlers(bot: TeleBot):
         data["state"].set(MatchState.upload_screenshot)
         data["state"].add_data(
             original_message_id=message.message_id,
-            messages_to_delete=[msg.message_id]
+            messages_to_delete=[sent_message.message_id]
         )
 
-        # Start timeout timer
-        reset_timeout_timer(message.chat.id, message.message_id, data)
+        # user_messages[message.chat.id] = sent_message.message_id
+        # start_timeout(bot, message.chat.id, sent_message.message_id)
 
     @bot.message_handler(commands=["cancel"], state=[
         MatchState.upload_screenshot, MatchState.enter_players, 
@@ -155,28 +141,29 @@ def register_handlers(bot: TeleBot):
         user = data["user"]
         # Get the photo with highest resolution
         photo = message.photo[-1]
-        
+
         # Save file_id to state
         data["state"].add_data(screenshot=photo.file_id)
-        
+
         # Ask for players
-        msg = bot.reply_to(
+        sent_message = bot.reply_to(
             message,
             strings[user.lang].enter_players_prompt
         )
-        
+
         # Track message for later deletion
         with data["state"].data() as state_data:
             messages_to_delete = state_data.get("messages_to_delete", [])
-            messages_to_delete.append(msg.message_id)
+            messages_to_delete.append(sent_message.message_id)
             messages_to_delete.append(message.message_id)
             data["state"].add_data(messages_to_delete=messages_to_delete)
 
         # Update state
         data["state"].set(MatchState.enter_players)
 
-        # Reset timeout timer
-        reset_timeout_timer(message.chat.id, message.message_id, data)
+        # user_messages[message.chat.id] = sent_message.message_id
+        # start_timeout(bot, message.chat.id, sent_message.message_id)
+
 
     @bot.message_handler(state=MatchState.enter_players)
     def process_players(message: types.Message, data: dict):
@@ -225,9 +212,7 @@ def register_handlers(bot: TeleBot):
         
         # Update state
         data["state"].set(MatchState.enter_winner)
-        
-        # Reset timeout timer
-        reset_timeout_timer(message.chat.id, message.message_id, data)
+
 
     @bot.message_handler(state=MatchState.enter_winner)
     def process_winner(message: types.Message, data: dict):
@@ -264,23 +249,11 @@ def register_handlers(bot: TeleBot):
         
         # Save winner to state
         data["state"].add_data(winner_username=winner_username)
-        
-        # Ask for win type with inline keyboard
-        markup = types.InlineKeyboardMarkup(row_width=2)
-        win_types = {
-            "prestige": "Престиж",
-            "murder": "Убийство",
-            "decay": "Гниль",
-            "stones": "Камни Духа"
-        }
-        
-        for win_type, label in win_types.items():
-            markup.add(types.InlineKeyboardButton(label, callback_data=f"wintype:{win_type}"))
-        
-        msg = bot.reply_to(
+
+        sent_message = bot.reply_to(
             message, 
             strings[user.lang].select_win_type,
-            reply_markup=markup
+            reply_markup=create_win_type_markup()
         )
         
         # Track messages for later deletion
@@ -293,8 +266,10 @@ def register_handlers(bot: TeleBot):
         # Update state
         data["state"].set(MatchState.enter_win_type)
         
-        # Reset timeout timer
-        reset_timeout_timer(message.chat.id, message.message_id, data)
+        # # Send timer
+        # user_messages[message.chat.id] = sent_message.message_id
+        # start_timeout(bot, message.chat.id, sent_message.message_id)
+
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("wintype:"), state=MatchState.enter_win_type)
     def process_win_type(call: types.CallbackQuery, data: dict):
@@ -302,6 +277,7 @@ def register_handlers(bot: TeleBot):
         user = data["user"]
         win_type = call.data.split(':')[1]
         data["state"].add_data(win_type=win_type)
+        print("Win type selected:", win_type)
         
         # Setup for hero selection
         with data["state"].data() as state_data:
@@ -326,10 +302,8 @@ def register_handlers(bot: TeleBot):
         
         # Update state
         data["state"].set(MatchState.enter_hero)
-        
-        # Reset timeout timer
-        reset_timeout_timer(call.message.chat.id, call.message.message_id, data)
-        
+
+
         # Answer callback to remove loading state
         bot.answer_callback_query(call.id)
 
@@ -419,15 +393,8 @@ def register_handlers(bot: TeleBot):
                 "decay": "Гниль",
                 "stones": "Камни Духа"
             }.get(win_type, win_type.capitalize())
-            
-            # Generate match ID (in a real implementation, this would be from DB)
-            # Using timestamp as temporary ID
-            match_id = str(int(time.time()))[-6:]
-            data["state"].add_data(match_id=match_id)
-            
-            # Create summary
-            summary = f"Матч №{match_id}\n"
-            summary += f"Победа через {win_type_display}\n\n"
+
+            summary = f"Победа через {win_type_display}\n\n"
             
             # Add player info
             for username in players:
@@ -464,9 +431,6 @@ def register_handlers(bot: TeleBot):
             # Update state
             data["state"].set(MatchState.confirm_match)
 
-        # Reset timeout timer
-        reset_timeout_timer(message.chat.id, message.message_id, data)
-
 
     @bot.callback_query_handler(func=lambda call: call.data == "match:confirm", state=MatchState.confirm_match)
     def confirm_match(call: types.CallbackQuery, data: dict):
@@ -492,6 +456,7 @@ def register_handlers(bot: TeleBot):
                 participants.append(ParticipantCreate(username=username, hero_id=hero_id))
 
             # Create match
+            print("win type:", win_type)
             match_create = MatchCreate(
                 screenshot=screenshot,
                 win_type=win_type,
@@ -504,7 +469,7 @@ def register_handlers(bot: TeleBot):
             rating_service.update_ratings_after_match(db_session, match)
 
             # Update titles
-            title_service.update_titles_after_match(db_session)
+            title_service.update_title_for_all_players(db_session)
 
             # Clean up the timer
             if call.message.chat.id in match_timeout_timers:
@@ -523,7 +488,7 @@ def register_handlers(bot: TeleBot):
                 bot.delete_message(call.message.chat.id, original_message_id)
             except ApiTelegramException:
                 pass
-            
+
             # Update the final report message (remove the confirmation buttons)
             win_type_display = {
                 "prestige": "Престиж",
@@ -532,8 +497,7 @@ def register_handlers(bot: TeleBot):
                 "stones": "Камни Духа"
             }.get(win_type, win_type.capitalize())
 
-            final_report = f"Матч №{match_id}\n"
-            final_report += f"Победа через {win_type_display}\n\n"
+            final_report = f"Победа через {win_type_display}\n\n"
 
             for username in players:
                 hero_id = hero_selection.get(username)
@@ -544,6 +508,8 @@ def register_handlers(bot: TeleBot):
 
             # Update the message without buttons
             try:
+                match_id = match.id
+                final_report = f"Матч №{match_id}\n\n" + final_report
                 bot.edit_message_caption(
                     caption=final_report,
                     chat_id=call.message.chat.id,

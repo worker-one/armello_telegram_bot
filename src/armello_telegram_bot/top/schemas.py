@@ -11,7 +11,6 @@ class PlayerRatingModel(BaseModel):
     win_rate: float
     titles: Optional[list[str]] = []
 
-
 class HeroRatingModel(BaseModel):
     """Hero rating model for top lists"""
     id: int

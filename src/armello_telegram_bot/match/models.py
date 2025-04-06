@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.orm import relationship
 
@@ -18,7 +18,7 @@ class WinTypeEnum(str, Enum):
 class Player(Base):
     __tablename__ = 'players'
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer)
+    user_id = Column(BigInteger)
     username = Column(String, unique=True, nullable=False)
     title = Column(String, nullable=True)
 
@@ -75,6 +75,7 @@ class MatchParticipant(Base):
     hero_id = Column(Integer, ForeignKey('heroes.id'))
     is_winner = Column(Boolean, default=False)
     win_type = Column(SQLEnum(WinTypeEnum), nullable=True)
+    score = Column(Integer, default=0)
 
     match = relationship("Match", back_populates="participants")
     player = relationship("Player", back_populates="matches")

@@ -19,6 +19,13 @@ def create_player(db: Session, username: str):
     return player
 
 
+def read_match(match_id: int, db: Session) -> Match:
+    """
+    Получает матч по ID.
+    """
+    match = db.query(Match).filter(Match.id == match_id).first()
+    return match
+
 def read_player(
     db: Session, id: Optional[int] = None,
     player_id: Optional[int] = None,
@@ -59,7 +66,10 @@ def create_match(db: Session, match_data: MatchCreate):
             match_id=match.id,
             player_id=player.id,
             hero_id=hero.id,
-            is_winner=(participant.username == match_data.winner_username)
+            is_winner=(participant.username == match_data.winner_username),
+            win_type=match_data.win_type if (participant.username == match_data.winner_username) else None,
+            # add score 4 if winner and -1 otherwise
+            score=4 if (participant.username == match_data.winner_username) else -1
         )
         db.add(match_participant)
 
@@ -119,3 +129,27 @@ def read_hero(db: Session, hero_name: str) -> Hero:
         ).first()
 
     return None
+
+
+def remove_match(db: Session, match_id: int):
+    """
+    Removes a match and all its associated participants from the database.
+    
+    Args:
+        db: Database session
+        match_id: ID of the match to remove
+        
+    Returns:
+        bool: True if match was found and deleted, False otherwise
+    """
+    match = db.query(Match).filter(Match.id == match_id).first()
+    
+    if not match:
+        return False
+    
+    # The match will cascade delete all participants due to the 
+    # cascade="all, delete-orphan" relationship configuration
+    db.delete(match)
+    db.commit()
+    
+    return True

@@ -1,0 +1,24 @@
+INFO:apscheduler.scheduler:Scheduler started
+INFO:src.armello_telegram_bot.database.core:Tables dropped
+INFO:src.armello_telegram_bot.database.core:Tables created
+INFO:src.armello_telegram_bot.auth.service:User with name konverner added successfully.
+INFO:__main__:Superuser konverner added successfully.
+INFO:__main__:Database initialized
+INFO:__main__:Initializing telegram_bot v1.0.0
+2025-03-16 22:19:27,942 (__init__.py:286 MainThread) ERROR - TeleBot: "You are using class based middlewares while having ENABLE_MIDDLEWARE set to True. This is not recommended."
+ERROR:TeleBot:You are using class based middlewares while having ENABLE_MIDDLEWARE set to True. This is not recommended.
+INFO:__main__:Enabling antiflood (window: 1s)
+INFO:src.armello_telegram_bot.admin.handlers:Registering `about` handlers
+INFO:src.armello_telegram_bot.customtitle.handlers:Registering title handlers
+INFO:src.armello_telegram_bot.menu.handlers:Registering menu handlers
+INFO:src.armello_telegram_bot.herorating.handlers:Registering hero rating handlers
+2025-03-16 22:19:27,944 (__init__.py:7320 MainThread) ERROR - TeleBot: "middleware_handler/register_middleware_handler/add_middleware_handler cannot be used with use_class_middlewares=True. Skipped."
+ERROR:TeleBot:middleware_handler/register_middleware_handler/add_middleware_handler cannot be used with use_class_middlewares=True. Skipped.
+INFO:src.armello_telegram_bot.common.handlers:Registering common handlers
+INFO:src.armello_telegram_bot.public_message.handlers:Registering `public message` handlers
+INFO:src.armello_telegram_bot.clanrating.handlers:Registering clan rating handlers
+INFO:src.armello_telegram_bot.users.handlers:Registering `about` handlers
+INFO:src.armello_telegram_bot.match.handlers:Registering match handlers
+INFO:src.armello_telegram_bot.title.handlers:Registering title handlers
+INFO:src.armello_telegram_bot.rating.handlers:Registering rating handlers
+INFO:src.armello_telegram_bot.top.handlers:Registering top list handlers

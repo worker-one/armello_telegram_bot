@@ -14,9 +14,10 @@ apihelper.ENABLE_MIDDLEWARE = True
 
 from .admin.handlers import register_handlers as admin_handlers
 from .auth.data import init_roles_table, init_superuser
+from .clanrating.handlers import register_handlers as clanrating_handlers
+from .common.handlers import register_handlers as common_handlers
 from .customtitle.data import init_custom_titles
 from .customtitle.handlers import register_handlers as customtitle_handlers
-from .clanrating.handlers import register_handlers as clanrating_handlers
 from .database.core import (
     create_tables,
     drop_tables,
@@ -24,17 +25,19 @@ from .database.core import (
 )
 from .herorating.handlers import register_handlers as herorating_handlers
 from .match.data import init_test_data
-from .match.handlers import register_handlers as match_handlers
-from .menu.handlers import register_handlers as menu_handlers
+from .match.handlers import register_handlers as match_handlers  # noqa: E402
+from .menu.handlers import register_handlers as menu_handlers  # noqa: E402
 from .middleware.antiflood import AntifloodMiddleware
 from .middleware.user import UserCallbackMiddleware, UserMessageMiddleware
 from .public_message.handlers import register_handlers as public_message_handlers
 from .rating.data import init_rating_test_data
 from .rating.handlers import register_handlers as rating_handlers
-from .top.handlers import register_handlers as top_handlers
-from .title.handlers import register_handlers as title_handlers
+from .start.handlers import register_handlers as start_handlers
 from .title.data import init_titles
+from .title.handlers import register_handlers as title_handlers
+from .top.handlers import register_handlers as top_handlers
 from .users.handlers import register_handlers as users_handlers
+from .database.core import db_session
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -90,12 +93,14 @@ def _register_handlers(bot):
         customtitle_handlers,
         menu_handlers,
         herorating_handlers,
+        common_handlers,
         public_message_handlers,
         clanrating_handlers,
         users_handlers,
         match_handlers,
         title_handlers,
         rating_handlers,
+        start_handlers,
         top_handlers
     ]
     for handler in handlers:
@@ -130,17 +135,15 @@ def init_db():
     # Create tables
     create_tables()
 
-    db_session = get_session()
-
     init_roles_table(db_session)
 
     # Initialize data tables
     init_test_data(db_session)
-    init_rating_test_data(db_session)
+    #init_rating_test_data(db_session)
     init_titles(db_session)
     init_custom_titles(db_session)
-    #init_hero_rating_table(db_session)
-    #init_clans_and_heroes(db_session)
+    # init_hero_rating_table(db_session)
+    # init_clans_and_heroes(db_session)
 
     # Add admin to user table
     if SUPERUSER_USER_ID:
@@ -153,6 +156,6 @@ def init_db():
 
 
 if __name__ == "__main__":
-    drop_tables()
-    init_db()
+    # drop_tables()
+    # init_db()
     start_bot()

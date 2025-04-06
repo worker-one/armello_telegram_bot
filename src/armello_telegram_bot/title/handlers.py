@@ -58,7 +58,7 @@ def register_handlers(bot: TeleBot):
                 callback_data=f"title_select:{category}"
             ))
 
-        bot.send_message(message.chat.id, strings[user.lang].title_prompt, reply_markup=markup)
+        bot.reply_to(message, strings[user.lang].title_prompt, reply_markup=markup)
         data["state"].set(TitleState.select_title)
         # start_timeout(bot, message.chat.id, message.message_id)
 

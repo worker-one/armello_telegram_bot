@@ -288,8 +288,8 @@ def register_handlers(bot: TeleBot):
             )
         
         # Ask for first hero
-        msg = bot.send_message(
-            call.message.chat.id,
+        msg = bot.reply_to(
+            call.message,
             f"За какого героя играл @{players[0]}?"
         )
         
@@ -355,8 +355,8 @@ def register_handlers(bot: TeleBot):
         # Check if all heroes are selected
         if current_index < len(players):
             # Ask for next hero
-            msg = bot.send_message(
-                message.chat.id,
+            msg = bot.reply_to(
+                message,
                 f"За какого героя играл @{players[current_index]}?"
             )
             
@@ -367,8 +367,8 @@ def register_handlers(bot: TeleBot):
                 data["state"].add_data(messages_to_delete=messages_to_delete)
         else:
             # All heroes selected, create match report preview
-            msg = bot.send_message(
-                message.chat.id,
+            msg = bot.reply_to(
+                message,
                 "Принято. Формирую отчет о матче..."
             )
             
@@ -419,8 +419,8 @@ def register_handlers(bot: TeleBot):
                     reply_markup=markup
                 )
             except ApiTelegramException:
-                msg = bot.send_message(
-                    message.chat.id,
+                msg = bot.reply_to(
+                    message,
                     f"{summary}\n\n(Ошибка загрузки скриншота)\n\nВсе верно?",
                     reply_markup=markup
                 )
@@ -555,8 +555,8 @@ def register_handlers(bot: TeleBot):
             final_report_message_id = match_data.get("final_report_message_id")
 
         # Send cancellation message
-        msg = bot.send_message(
-            call.message.chat.id,
+        msg = bot.reply_to(
+            call.message,
             strings[user.lang].match_cancelled,
             reply_to_message_id=original_message_id
         )

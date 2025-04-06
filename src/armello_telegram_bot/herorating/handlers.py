@@ -33,8 +33,8 @@ def register_handlers(bot: TeleBot):
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("Выход", callback_data="exit_herorating"))
 
-        sent_message = bot.send_message(
-            message.chat.id,
+        sent_message = bot.reply_to(
+            message,
             "Введите имя героя, используя «Ответить» на это сообщение. Если вы закончили, нажмите кнопку выхода",
             reply_markup=markup
         )

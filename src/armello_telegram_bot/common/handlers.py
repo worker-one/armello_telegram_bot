@@ -25,5 +25,5 @@ def register_handlers(bot: TeleBot):
         user = data["user"]
         bot.delete_state(message.from_user.id, message.chat.id)
         data["state"].delete()
-        bot.send_message(message.chat.id, strings[user.lang].operation_cancelled)
+        bot.reply_to(message, strings[user.lang].operation_cancelled)
 

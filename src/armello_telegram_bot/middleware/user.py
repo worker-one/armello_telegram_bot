@@ -1,7 +1,7 @@
 import logging
 
 from telebot import TeleBot
-from telebot.handler_backends import BaseMiddleware
+from telebot.handler_backends import BaseMiddleware, CancelUpdate
 from telebot.states.sync.context import StateContext
 from telebot.types import CallbackQuery, Message
 
@@ -45,7 +45,8 @@ class UserMessageMiddleware(BaseMiddleware):
         )
 
         # Log event to the console
-        print(f"message_thread_id: {message.message_thread_id}")
+        if message.message_thread_id not in {13183, 13186}:
+            return CancelUpdate()
         logger.info(event.dict())
 
         # Set the user data to the data dictionary

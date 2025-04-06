@@ -32,13 +32,12 @@ def register_handlers(bot: TeleBot):
         """Start the hero rating process"""
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton("Выход", callback_data="exit_herorating"))
-
+        data["state"].set(HeroratingState.waiting_for_hero_name)
         sent_message = bot.reply_to(
             message,
             "Введите имя героя, используя «Ответить» на это сообщение. Если вы закончили, нажмите кнопку выхода",
             reply_markup=markup
         )
-        bot.set_state(message.from_user.id, HeroratingState.waiting_for_hero_name, message.chat.id)
         # start_timeout(bot, message.chat.id, sent_message.message_id)
         # user_messages[message.chat.id] = sent_message.message_id
 

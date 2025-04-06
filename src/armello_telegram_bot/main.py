@@ -138,7 +138,7 @@ def init_db():
     init_roles_table(db_session)
 
     # Initialize data tables
-    # init_test_data(db_session)
+    init_test_data(db_session)
     #init_rating_test_data(db_session)
     init_titles(db_session)
     # init_custom_titles(db_session)

@@ -57,7 +57,7 @@ def register_handlers(bot: TeleBot):
             types.InlineKeyboardButton("Удалить титул", callback_data="customtitle_action:delete")
         )
         
-        bot.send_message(message.chat.id, "Выберите действие:", reply_markup=markup)
+        bot.reply_to(message, "Выберите действие:", reply_markup=markup)
         data["state"].set(CustomTitleState.action_selection)
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("customtitle_action:"), 

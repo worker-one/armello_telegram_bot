@@ -143,7 +143,7 @@ def init_db():
     init_titles(db_session)
     # init_custom_titles(db_session)
     # init_hero_rating_table(db_session)
-    # init_clans_and_heroes(db_session)
+    init_clans_and_heroes(db_session)
 
     # Add admin to user table
     if SUPERUSER_USER_ID:

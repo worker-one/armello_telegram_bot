@@ -35,12 +35,12 @@ def register_handlers(bot):
         user = data["user"]
         if user.role_id not in {0, 1}:
             # Inform the user that they do not have admin rights
-            bot.send_message(message.from_user.id, app_strings[user.lang].no_rights)
+            bot.reply_to(message, app_strings[user.lang].no_rights)
             return
 
         # Send the admin menu
-        bot.send_message(
-            message.from_user.id,
+        bot.reply_to(
+            message,
             app_strings[user.lang].menu.title,
             reply_markup=create_admin_menu_markup(user.lang)
         )

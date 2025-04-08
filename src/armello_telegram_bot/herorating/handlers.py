@@ -7,7 +7,6 @@ from telebot.states import State, StatesGroup
 
 from ..database.core import db_session
 from .service import format_hero_stats, get_hero_stats, read_hero
-from ..common.service import cancel_timeout, start_timeout, user_messages
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -47,7 +46,7 @@ def register_handlers(bot: TeleBot):
         """Handle hero name input"""
         user = data["user"]
         if message.text.lower() == "выход":
-            bot.send_message(message.chat.id, "До свидания!", reply_markup=types.ReplyKeyboardRemove())
+            bot.reply_to(message, "До свидания!", reply_markup=types.ReplyKeyboardRemove())
             bot.delete_state(message.from_user.id, message.chat.id)
             return
 
@@ -58,8 +57,8 @@ def register_handlers(bot: TeleBot):
         hero = read_hero(db_session, message.text)
 
         if not hero:
-            bot.send_message(
-                message.chat.id,
+            bot.reply_to(
+                message,
                 strings[user.lang].hero_not_found.format(name=message.text),
                 reply_markup=markup
             )
@@ -70,11 +69,11 @@ def register_handlers(bot: TeleBot):
 
         # Format and send response
         stats_message = format_hero_stats(hero, stats)
-        bot.send_message(message.chat.id, stats_message)
+        bot.reply_to(message, stats_message)
 
         # Ask for next hero
-        sent_message = bot.send_message(
-            message.chat.id,
+        bot.reply_to(
+            message,
             "Введите имя героя, используя «Ответить» на это сообщение или нажмите кнопку выхода.",
             reply_markup=markup
         )

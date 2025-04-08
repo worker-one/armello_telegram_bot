@@ -121,8 +121,8 @@ def register_handlers(bot: TeleBot):
                     return
 
         # If no valid mention was found
-        bot.send_message(
-            chat_id=user.id,
+        bot.reply_to(
+            message,
             text=strings[user.lang].invalid_mention,
             reply_markup=types.ForceReply(selective=True)
         )
@@ -304,7 +304,7 @@ def register_handlers(bot: TeleBot):
         )
 
         # Force user to reply with a username mention
-        bot.send_message(
+        bot.reply_to(
             call.message,
             text=strings[user.lang].mention_player_prompt,
             reply_markup=types.ForceReply(selective=True)

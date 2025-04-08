@@ -105,9 +105,9 @@ def register_handlers(bot: TeleBot):
             user_datetime_localized = timezone.localize(user_datetime)
 
             if user_datetime_localized < datetime.now(timezone):
-                sent_message = bot.send_message(user.id, strings[user.lang].past_datetime_error)
-                sent_message = bot.send_message(
-                    message.chat.id,
+                sent_message = bot.reply_to(message, strings[user.lang].past_datetime_error)
+                sent_message = bot.reply_to(
+                    message,
                     strings[user.lang].enter_datetime_prompt.format(
                         timezone=config.app.timezone,
                         datetime_example=datetime.now(timezone).strftime("%Y-%m-%d %H:%M")

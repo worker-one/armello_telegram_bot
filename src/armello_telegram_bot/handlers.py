@@ -24,5 +24,5 @@ def register_handlers(bot):
     def cancel_callback(call: CallbackQuery, data: dict):
         """Cancel current operation"""
         user = data["user"]
-        bot.send_message(call.message.chat.id, strings[user.lang].cancelled)
+        bot.reply_to(call.message, strings[user.lang].cancelled)
         bot.clear_step_handler_by_chat_id(chat_id=call.message.chat.id)

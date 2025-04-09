@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/fdcc4f8c-6bfd-4ed0-b495-8b101e874565)## Armello Telegram Bot
+## Armello Telegram Bot
 
 ## Введение
 
@@ -58,9 +58,9 @@
 
 3. Выделить "Cascade"
 
-4. Нажамать Proceed
+4. Нажать Proceed
 
-![image](https://github.com/user-attachments/assets/57b8792a-b37f-4808-bf3d-30b053710f8e)
+![image](https://github.com/user-attachments/assets/fdcc4f8c-6bfd-4ed0-b495-8b101e874565)
 
 5. Для построения новых рейтингов и титулов прописать в боте команду `/update`
 

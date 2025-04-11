@@ -35,12 +35,12 @@ def init_players(db_session: Session, count=5):
     """Initialize test players"""
     usernames = [f"player{i}" for i in range(1, count + 1)]
     
-    for i, username in enumerate(usernames, 1):
-        player = Player(
-            user_id=i * 100,  # Fake user_id
-            username=username
-        )
-        db_session.add(player)
+    # for i, username in enumerate(usernames, 1):
+    #     player = Player(
+    #         user_id=i * 100,  # Fake user_id
+    #         username=username
+    #     )
+    #     db_session.add(player)
     
     player = Player(
         user_id=954020212,
@@ -136,10 +136,10 @@ def init_test_data(db_session: Session):
         print("Initializing players...")
         init_players(db_session, count=2)
     
-    match_count = db_session.query(Match).count()
-    if match_count == 0:
-        print("Initializing matches...")
-        init_matches(db_session, match_count=20)
+    # match_count = db_session.query(Match).count()
+    # if match_count == 0:
+    #     print("Initializing matches...")
+    #     init_matches(db_session, match_count=20)
     
     print("Test data initialization complete!")
 

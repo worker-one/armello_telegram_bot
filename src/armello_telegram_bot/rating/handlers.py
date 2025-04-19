@@ -67,6 +67,9 @@ def register_handlers(bot: TeleBot):
 
         player = read_player(db_session, user_id=user.id)
 
+        if not player:
+            player = read_player(db_session, username=user.username)
+
         if player:
 
             # Store the selected player in state data
@@ -82,7 +85,6 @@ def register_handlers(bot: TeleBot):
             )
             # user_messages[message.chat.id] = sent_message.message_id
             # start_timeout(bot, message.chat.id, sent_message.message_id)
-
         else:
             bot.reply_to(
                 message,

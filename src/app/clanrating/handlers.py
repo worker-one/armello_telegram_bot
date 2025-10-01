@@ -3,7 +3,6 @@ import logging
 from pathlib import Path
 from tracemalloc import start
 
-from armello_telegram_bot.top import markup
 from omegaconf import OmegaConf
 from telebot import TeleBot, types
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup

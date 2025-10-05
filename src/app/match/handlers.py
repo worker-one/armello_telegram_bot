@@ -316,7 +316,9 @@ def register_handlers(bot: TeleBot):
             players = state_data.get("players", [])
             current_index = state_data.get("current_player_index", 0)
             hero_selection = state_data.get("hero_selection", {})
-            current_player = players[current_index]
+        
+        # Extract current_player outside the context manager
+        current_player = players[current_index]
         
         # Try to find hero in database
         hero_name = message.text.strip()

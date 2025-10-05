@@ -23,7 +23,6 @@ from .service import (
 )
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 # Load configuration
 CURRENT_DIR = Path(__file__).parent

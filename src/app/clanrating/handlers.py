@@ -15,7 +15,7 @@ from .service import format_clan_stats, get_clan_stats, read_clans
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+
 
 # Load configuration
 CURRENT_DIR = Path(__file__).parent

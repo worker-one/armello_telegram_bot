@@ -10,7 +10,6 @@ from ..database.core import db_session
 from .service import create_event
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class UserMessageMiddleware(BaseMiddleware):
@@ -94,4 +93,5 @@ class UserCallbackMiddleware(BaseMiddleware):
         data["user"] = user
 
     def post_process(self, callback_query, data, exception):
+        pass
         pass

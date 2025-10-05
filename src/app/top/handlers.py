@@ -17,7 +17,6 @@ from .markup import (
 from .service import get_player_clan_ratings, get_player_hero_ratings, get_top_clans, get_top_heroes, get_top_players
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 # Load configuration
 CURRENT_DIR = Path(__file__).parent

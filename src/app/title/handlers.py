@@ -10,7 +10,6 @@ from ..match.models import Player
 from .service import CLAN_CATEGORIES, CATEGORY_TO_CLAN_ID, get_available_titles, update_title, update_title_for_all_players
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 # Load configuration
 CURRENT_DIR = Path(__file__).parent

@@ -9,7 +9,6 @@ from ..database.core import db_session
 from .service import format_hero_stats, get_hero_stats, read_hero
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 # Load configuration
 CURRENT_DIR = Path(__file__).parent

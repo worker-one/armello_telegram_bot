@@ -13,7 +13,6 @@ from .utils import is_valid_date, is_valid_phone_number
 
 # Set logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 # Load configuration
 CURRENT_DIR = Path(__file__).parent

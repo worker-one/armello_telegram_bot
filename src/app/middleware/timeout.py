@@ -9,7 +9,6 @@ from armello_telegram_bot.common.service import cancel_timeout
 from ..common.service import cancel_timeout
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class MessageTimeoutMiddleware(BaseMiddleware):

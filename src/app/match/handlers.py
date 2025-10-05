@@ -18,7 +18,6 @@ from .service import create_match, read_hero, read_player, remove_match
 from .markup import create_win_type_markup
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 # Load configuration
 CURRENT_DIR = Path(__file__).parent

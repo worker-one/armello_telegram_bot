@@ -7,7 +7,6 @@ from telebot import TeleBot, types
 from ..common.service import cancel_timeout
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 # Load configuration
 CURRENT_DIR = Path(__file__).parent

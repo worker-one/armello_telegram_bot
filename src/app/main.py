@@ -28,7 +28,7 @@ from .menu.handlers import register_handlers as menu_handlers  # noqa: E402
 from .middleware.antiflood import AntifloodMiddleware
 from .middleware.user import UserCallbackMiddleware, UserMessageMiddleware
 from .public_message.handlers import register_handlers as public_message_handlers
-from .rating.handlers import register_handlers as rating_handlers
+from .rating.handlers import register_handlers as rating_handlers  # noqa: E402
 from .start.handlers import register_handlers as start_handlers
 from .title.data import init_titles
 from .title.handlers import register_handlers as title_handlers

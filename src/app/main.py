@@ -36,9 +36,20 @@ from .top.handlers import register_handlers as top_handlers
 from .users.handlers import register_handlers as users_handlers
 
 logger = logging.getLogger(__name__)
+
+# Configure logging with explicit formatter
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    force=True  # Force reconfiguration of root logger
 )
+
+# Ensure all existing loggers use the same format
+for name in logging.root.manager.loggerDict:
+    existing_logger = logging.getLogger(name)
+    if existing_logger.handlers:
+        for handler in existing_logger.handlers:
+            handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
 
 CURRENT_DIR = Path(__file__).parent
 config = OmegaConf.load(CURRENT_DIR / "config.yaml")

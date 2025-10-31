@@ -100,25 +100,18 @@ def register_handlers(bot):
     @bot.callback_query_handler(func=lambda call: call.data == "export_data")
     def export_data_handler(call, data):
         user = data["user"]
-
-        if user.role_id != 0:
-            # inform that the user does not have rights
-            bot.send_message(call.from_user.id, app_strings.users.no_rights[user.lang])
-            return
-
         # Export data
         export_dir = f'./data/{datetime.now().strftime("%Y%m%d_%H%M%S")}'
         os.makedirs(export_dir)
         try:
-            export_all_tables(export_dir)
-            for table in config.db.tables:
+            table_names = export_all_tables(db_session, export_dir)
+            for table in table_names:
                 # save as excel in temp folder and send to a user
                 filename = f"{export_dir}/{table}.csv"
                 bot.send_document(user.id, open(filename, "rb"))
                 # remove the file
                 os.remove(filename)
         except Exception as e:
-            bot.send_message(user.id, str(e))
+            bot.send_message(user.id, f"Error: ```{str(e)}```", parse_mode="Markdown")
             logger.error(f"Error exporting data: {e}")
-
 

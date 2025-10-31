@@ -63,23 +63,28 @@ def get_session():
     return sessionmaker(bind=engine)()
 
 
-def export_all_tables(export_dir: str):
+def export_all_tables(db_session, export_dir: str) -> list[str]:
     """Export all tables to CSV files."""
-    db = get_session()
-    inspector = inspect(db.get_bind())
-
-    for table_name in inspector.get_table_names():
+    inspector = inspect(db_session.get_bind())
+    table_names = inspector.get_table_names()
+    for table_name in table_names:
         file_path = os.path.join(export_dir, f"{table_name}.csv")
         with open(file_path, mode="w", newline="") as file:
             writer = csv.writer(file)
             columns = [col["name"] for col in inspector.get_columns(table_name)]
             writer.writerow(columns)
 
-            records = db.execute(text(f"SELECT * FROM {table_name}")).fetchall()
+            from sqlalchemy import MetaData, Table, select
+
+            metadata = MetaData()
+            table = Table(table_name, metadata, autoload_with=db_session.get_bind())
+            stmt = select(table)
+            records = db_session.execute(stmt).fetchall()
             for record in records:
                 writer.writerow(record)
 
-    db.close()
+    db_session.close()
+    return table_names
 
 # Create engine and session factory
 engine = create_engine(DATABASE_URL, echo=False)

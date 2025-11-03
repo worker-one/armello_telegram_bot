@@ -65,6 +65,15 @@ def register_handlers(bot: TeleBot):
 
         # Get hero stats
         stats = get_hero_stats(db_session, hero.id)
+        
+        # If there is not stats
+        if not stats:
+            bot.reply_to(
+                message,
+                strings[user.lang].hero_no_stats.format(name=hero.name),
+                reply_markup=markup
+            )
+            return
 
         # Format and send response
         stats_message = format_hero_stats(hero, stats)

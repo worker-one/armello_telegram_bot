@@ -1,6 +1,5 @@
 """Handler to show information about the application configuration."""
 import logging
-import logging.config
 import os
 from datetime import datetime
 from pathlib import Path
@@ -10,7 +9,7 @@ from telebot.states import State, StatesGroup
 from telebot.types import CallbackQuery, Message
 
 from ..auth.service import read_user, upsert_user
-from ..database.core import export_all_tables, db_session
+from ..database.core import db_session, export_all_tables
 from .markup import create_cancel_button, create_users_menu_markup
 
 # Set up logging

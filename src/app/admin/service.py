@@ -151,8 +151,7 @@ def update_user(
         logger.error(f"Error updating user with ID {id}: {e}")
         raise
     finally:
-
-    return user
+        return user
 
 
 def upsert_user(

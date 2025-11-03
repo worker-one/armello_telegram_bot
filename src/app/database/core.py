@@ -4,7 +4,7 @@ import logging.config
 import os
 
 from dotenv import find_dotenv, load_dotenv
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 

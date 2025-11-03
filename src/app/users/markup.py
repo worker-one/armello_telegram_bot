@@ -17,7 +17,7 @@ def create_users_menu_markup(lang: str, retrieved_user: User) -> InlineKeyboardM
     options = app_strings[lang].menu.options
 
     # If retrieved user is ordinary user
-    if retrieved_user.role_id == 1:
+    if retrieved_user.role_id == 2:
         menu_markup.add(
             InlineKeyboardButton(
                 options[0].label,

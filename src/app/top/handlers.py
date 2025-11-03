@@ -107,6 +107,15 @@ def register_handlers(bot: TeleBot):
             hero_id=hero.id  # Filter by clan instead of specific hero for better results
         )
         
+        if len(top_players) == 0:
+            bot.reply_to(
+                message,
+                text=strings[user.lang].hero_no_stats.format(name=hero.name),
+                reply_markup=create_top_selection_markup(user.lang)
+            )
+            data["state"].set(TopState.select_top_type)
+            return
+        
         message_lines = [strings[user.lang].top_players_by_hero_header.format(hero_name=hero.name)]
         for i, player in enumerate(top_players, 1):
             message_lines.append(

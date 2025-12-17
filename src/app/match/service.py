@@ -49,25 +49,25 @@ def create_match(db: Session, match_data: MatchCreate):
         timestamp=datetime.utcnow()
     )
     db.add(match)
-    db.commit()
-    db.refresh(match)
+    db.flush()
 
     # Создаем записи участников матча
     for participant in match_data.participants:
         # Ищем игрока по username, если нет – создаем
         player = get_player_by_username(db, participant.username)
         if not player:
-            player = create_player(db, participant.username)
+            raise ValueError(f"Player {participant.username} not found during match creation.")
+
         # Получаем героя – предполагается, что он уже существует в БД
         hero = db.query(Hero).filter(Hero.id == participant.hero_id).first()
         match_participant = MatchParticipant(
             match_id=match.id,
             player_id=player.id,
             hero_id=hero.id,
-            is_winner=(participant.username == match_data.winner_username),
-            win_type=match_data.win_type if (participant.username == match_data.winner_username) else None,
+            is_winner=(participant.username.lower() == match_data.winner_username.lower()),
+            win_type=match_data.win_type if (participant.username.lower() == match_data.winner_username.lower()) else None,
             # add score 4 if winner and -1 otherwise
-            score=4 if (participant.username == match_data.winner_username) else -1
+            score=4 if (participant.username.lower() == match_data.winner_username.lower()) else -1
         )
         db.add(match_participant)
 

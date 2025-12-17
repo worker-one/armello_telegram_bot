@@ -183,20 +183,25 @@ def register_handlers(bot: TeleBot):
                 data["state"].add_data(messages_to_delete=messages_to_delete)
             return
 
-        # Check that players exist in the database if not create them
         try:
+            # Efficiently check for existing players
+            existing_players = db_session.query(Player.username).filter(Player.username.in_([u.lower() for u in usernames])).all()
+            existing_usernames = {name.lower() for (name,) in existing_players}
+
+            new_players = []
             for username in usernames:
-                player = read_player(db_session, username=username)
-                if not player:
-                    # Check if the user exists in the database
+                if username.lower() not in existing_usernames:
                     retrieved_user = read_user(db_session, username=username)
                     if retrieved_user:
-                        # Create player
                         player = Player(user_id=retrieved_user.id, username=username)
                     else:
                         player = Player(username=username)
-                    db_session.add(player)
-            db_session.commit()
+                    new_players.append(player)
+            
+            if new_players:
+                db_session.add_all(new_players)
+                db_session.commit()
+
         except Exception as e:
             logger.error(f"Error processing players: {e}", exc_info=True)
             db_session.rollback()
@@ -541,6 +546,7 @@ def register_handlers(bot: TeleBot):
 
         except Exception as e:
             logger.error(f"Error saving match: {e}")
+            db_session.rollback()
             bot.answer_callback_query(
                 call.id,
                 text="Ошибка при сохранении матча. Пожалуйста, попробуйте снова."

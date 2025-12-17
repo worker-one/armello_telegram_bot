@@ -8,14 +8,12 @@ from .schemas import MatchCreate
 
 
 def get_player_by_username(db: Session, username: str):
-    return db.query(Player).filter(Player.username == username).first()
+    return db.query(Player).filter(Player.username.ilike(username)).first()
 
 
 def create_player(db: Session, username: str):
     player = Player(username=username)
     db.add(player)
-    db.commit()
-    db.refresh(player)
     return player
 
 
@@ -36,7 +34,7 @@ def read_player(
     if player_id:
         return db.query(Player).filter(Player.id == player_id).first()
     if username:
-        return db.query(Player).filter(Player.username == username).first()
+        return db.query(Player).filter(Player.username.ilike(username)).first()
 
 
 def create_match(db: Session, match_data: MatchCreate):

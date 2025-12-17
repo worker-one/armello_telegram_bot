@@ -169,7 +169,8 @@ def register_handlers(bot: TeleBot):
         """Process the list of players participating in the match"""
         user = data["user"]
         # Extract usernames using regex to find @ mentions
-        usernames = re.findall(r'@(\w+)', message.text)
+        raw_usernames = re.findall(r'@(\w+)', message.text)
+        usernames = list(dict.fromkeys(raw_usernames))
 
         if not usernames or len(usernames) != 4:
             msg = bot.reply_to(message, strings[user.lang].invalid_players_count)
@@ -183,18 +184,24 @@ def register_handlers(bot: TeleBot):
             return
 
         # Check that players exist in the database if not create them
-        for username in usernames:
-            player = read_player(db_session, username=username)
-            if not player:
-                # Check if the user exists in the database
-                retrieved_user = read_user(db_session, username=username)
-                if retrieved_user:
-                    # Create player
-                    player = Player(user_id=retrieved_user.id, username=username)
-                else:
-                    player = Player(username=username)
-                db_session.add(player)
-                db_session.commit()
+        try:
+            for username in usernames:
+                player = read_player(db_session, username=username)
+                if not player:
+                    # Check if the user exists in the database
+                    retrieved_user = read_user(db_session, username=username)
+                    if retrieved_user:
+                        # Create player
+                        player = Player(user_id=retrieved_user.id, username=username)
+                    else:
+                        player = Player(username=username)
+                    db_session.add(player)
+            db_session.commit()
+        except Exception as e:
+            logger.error(f"Error processing players: {e}", exc_info=True)
+            db_session.rollback()
+            bot.reply_to(message, "An error occurred while processing players. Please try again.")
+            return
 
         # Save players to state
         data["state"].add_data(players=usernames)

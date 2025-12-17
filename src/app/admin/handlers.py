@@ -11,7 +11,8 @@ from telebot.types import CallbackQuery, Message
 
 from ..database.core import db_session
 from ..database.core import export_all_tables
-from .markup import create_admin_menu_markup
+from .markup import create_admin_menu_markup, create_delete_all_matches_confirmation_markup
+from ..match.service import delete_all_matches
 from ..title.service import update_title_for_all_players
 from ..rating.service import rebuild_all_ratings
 
@@ -114,4 +115,51 @@ def register_handlers(bot):
         except Exception as e:
             bot.send_message(user.id, f"Error: ```{str(e)}```", parse_mode="Markdown")
             logger.error(f"Error exporting data: {e}")
+
+    @bot.callback_query_handler(func=lambda call: call.data == "delete_all_matches")
+    def delete_all_matches_handler(call: CallbackQuery, data: dict):
+        """Handler to ask for confirmation to delete all matches."""
+        user = data["user"]
+        if user.role_id not in {0, 1}:
+            bot.answer_callback_query(call.id, app_strings[user.lang].no_rights, show_alert=True)
+            return
+
+        bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=app_strings[user.lang].delete_all_matches.confirm,
+            reply_markup=create_delete_all_matches_confirmation_markup(user.lang)
+        )
+
+    @bot.callback_query_handler(func=lambda call: call.data == "delete_all_matches_confirm")
+    def delete_all_matches_confirm_handler(call: CallbackQuery, data: dict):
+        """Handler to delete all matches after confirmation."""
+        user = data["user"]
+        if user.role_id not in {0, 1}:
+            bot.answer_callback_query(call.id, app_strings[user.lang].no_rights, show_alert=True)
+            return
+
+        try:
+            delete_all_matches(db_session)
+            # after deleting matches, we need to rebuild ratings and titles
+            rebuild_all_ratings(db=db_session)
+            update_title_for_all_players(session=db_session)
+
+            bot.edit_message_text(
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                text=app_strings[user.lang].delete_all_matches.success,
+                reply_markup=create_admin_menu_markup(user.lang)  # show admin menu again
+            )
+            bot.answer_callback_query(call.id, "Done!")
+        except Exception as e:
+            logger.error(f"Error deleting all matches: {e}")
+            bot.edit_message_text(
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                text=app_strings[user.lang].delete_all_matches.error,
+                reply_markup=create_admin_menu_markup(user.lang)
+            )
+            bot.answer_callback_query(call.id, "Error!")
+
 

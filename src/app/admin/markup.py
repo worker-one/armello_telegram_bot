@@ -43,3 +43,19 @@ def create_cancel_button(lang: str) -> InlineKeyboardMarkup:
         InlineKeyboardButton(app_strings[lang].cancel, callback_data="cancel_admin")
     )
     return cancel_button
+
+
+def create_delete_all_matches_confirmation_markup(lang: str) -> InlineKeyboardMarkup:
+    """Create a confirmation markup for deleting all matches."""
+    markup = InlineKeyboardMarkup(row_width=2)
+    strings = app_strings[lang].delete_all_matches
+    confirm_button = InlineKeyboardButton(
+        strings.confirm_button,
+        callback_data="delete_all_matches_confirm"
+    )
+    cancel_button = InlineKeyboardButton(
+        strings.cancel_button,
+        callback_data="admin"  # back to admin menu
+    )
+    markup.add(confirm_button, cancel_button)
+    return markup

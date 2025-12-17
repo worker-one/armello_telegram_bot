@@ -151,3 +151,16 @@ def remove_match(db: Session, match_id: int):
     db.commit()
     
     return True
+
+
+def delete_all_matches(db: Session):
+    """
+    Deletes all matches and their participants from the database.
+    """
+    try:
+        db.query(MatchParticipant).delete()
+        db.query(Match).delete()
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise e

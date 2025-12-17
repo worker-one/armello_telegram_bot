@@ -12,6 +12,14 @@ strings:
           value: "users"
         - label: "О приложении"
           value: "about"
+        - label: "Удалить все матчи"
+          value: "delete_all_matches"
+    delete_all_matches:
+      confirm: "Вы уверены, что хотите удалить все матчи? Это действие необратимо."
+      confirm_button: "Да, удалить"
+      cancel_button: "Отмена"
+      success: "Все матчи были успешно удалены."
+      error: "Произошла ошибка при удалении матчей."
   en:
     no_rights: "You do not have admin rights to access this application"
     menu:
@@ -25,3 +33,11 @@ strings:
           value: "users"
         - label: "About"
           value: "about"
+        - label: "Delete all matches"
+          value: "delete_all_matches"
+    delete_all_matches:
+      confirm: "Are you sure you want to delete all matches? This action is irreversible."
+      confirm_button: "Yes, delete"
+      cancel_button: "Cancel"
+      success: "All matches have been successfully deleted."
+      error: "An error occurred while deleting matches."

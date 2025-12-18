@@ -7,6 +7,7 @@ from omegaconf import OmegaConf
 from telebot import TeleBot, types
 from telebot.apihelper import ApiTelegramException
 from telebot.states import State, StatesGroup
+from sqlalchemy import func
 
 from ..auth.service import read_user
 from ..database.core import db_session
@@ -185,7 +186,7 @@ def register_handlers(bot: TeleBot):
 
         try:
             # Efficiently check for existing players
-            existing_players = db_session.query(Player.username).filter(Player.username.in_([u.lower() for u in usernames])).all()
+            existing_players = db_session.query(Player.username).filter(func.lower(Player.username).in_([u.lower() for u in usernames])).all()
             existing_usernames = {name.lower() for (name,) in existing_players}
 
             new_players = []

@@ -144,12 +144,12 @@ def remove_match(db: Session, match_id: int):
     
     if not match:
         return False
-    
+
     # The match will cascade delete all participants due to the 
     # cascade="all, delete-orphan" relationship configuration
     db.delete(match)
     db.commit()
-    
+
     return True
 
 

@@ -55,16 +55,26 @@ def register_handlers(bot: TeleBot):
         # Use the new service function
         top_players = get_top_players(db_session, limit=10, sort_by="rating")
 
+        if not top_players:
+            bot.edit_message_text(
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                text=strings[user.lang].no_stats_overall,
+                reply_markup=create_top_selection_markup(user.lang),
+            )
+            return
+
         message_lines = [strings[user.lang].top_players_overall_header]
         for i, player in enumerate(top_players, 1):
             message_lines.append(
                 f"{i}. @{player['username']} – {player['rating']}: {player['wins']}-{player['losses']}-{player['win_rate']}%"
             )
         message_lines.append("\n" + strings[user.lang].top_players_explanation)
-        
+
         title = title_service.get_title(db_session, category="overall")
-        top_player_string = f"@{title.player.username} – {title.title}"
-        message_lines.append(top_player_string)
+        if title and getattr(title, "player", None):
+            top_player_string = f"@{title.player.username} – {title.title}"
+            message_lines.append(top_player_string)
 
         bot.edit_message_text(
             chat_id=call.message.chat.id,
@@ -165,25 +175,38 @@ def register_handlers(bot: TeleBot):
         # Get player clan ratings
         top_players = get_player_clan_ratings(db_session, sort_by="rating", clan_id=clan_id, limit=10)
 
+        clan_name_short = clan.name.split(' ')[1] if ' ' in clan.name else clan.name
+        if not top_players:
+            bot.edit_message_text(
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                text=strings[user.lang].clan_no_stats.format(clan_name=clan_name_short),
+                reply_markup=create_top_selection_markup(user.lang),
+            )
+            data["state"].set(TopState.select_top_type)
+            return
+
         # For the top player title, get the highest-rated player
         top_player_title = None
         if top_players:
             top_player = top_players[0]
-            clan_name = clan.name.split(' ')[1]  # Extract clan name
             title = title_service.read_clan_title(db_session, clan_id=clan.id)
-            top_player_title = {"player": top_player, "title": title.title}
+            if title:
+                top_player_title = {"player": top_player, "title": title.title}
 
         # Format the list
-        message_lines = [strings[user.lang].top_players_by_clan_header.format(clan_name=clan.name.split(' ')[1])]
+        message_lines = [strings[user.lang].top_players_by_clan_header.format(clan_name=clan_name_short)]
 
         for i, player in enumerate(top_players, 1):
+            username = player.get("username", "N/A")
             message_lines.append(
-                f'{i}. {player["username"]} – {player["rating"]}: {player["wins"]}-{player["losses"]}-{player["win_rate"]}%'
+                f'{i}. {username} – {player["rating"]}: {player["wins"]}-{player["losses"]}-{player["win_rate"]}%'
             )
 
         message_lines.append("")
         if top_player_title:
-            message_lines.append(f"{top_player_title['player']['username']} – {top_player_title['title']}")
+            username = top_player_title["player"].get("username", "N/A")
+            message_lines.append(f'{username} – {top_player_title["title"]}')
 
         data["state"].set(TopState.select_top_type)
 
@@ -200,6 +223,15 @@ def register_handlers(bot: TeleBot):
         user = data["user"]
         # Use the new service function
         top_heroes = get_top_heroes(db_session, limit=100, sort_by="rating")
+
+        if not top_heroes:
+            bot.edit_message_text(
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                text=strings[user.lang].no_heroes_stats,
+                reply_markup=create_top_selection_markup(user.lang),
+            )
+            return
         
         # Format the list
         message_lines = [strings[user.lang].top_heroes_header]
@@ -222,6 +254,15 @@ def register_handlers(bot: TeleBot):
         user = data["user"]
         # Use the new service function
         top_clans = get_top_clans(db_session, sort_by="rating")
+
+        if not top_clans:
+            bot.edit_message_text(
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                text=strings[user.lang].no_clans_stats,
+                reply_markup=create_top_selection_markup(user.lang),
+            )
+            return
         
         # Format the list
         message_lines = [strings[user.lang].top_clans_header]

@@ -1,5 +1,6 @@
 import logging
-import os
+import os, certifi
+os.environ['SSL_CERT_FILE'] = certifi.where()
 from pathlib import Path
 from time import sleep
 

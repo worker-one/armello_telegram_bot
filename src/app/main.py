@@ -80,7 +80,7 @@ def start_bot():
         bot_info = bot.get_me()
         logger.info(f"Bot {bot_info.username} (ID: {bot_info.id}) initialized successfully")
 
-        bot.polling(none_stop=True, timeout=120, long_polling_timeout=60, interval=2)
+        bot.polling(none_stop=True, timeout=360, long_polling_timeout=480, interval=2)
 
     except Exception as e:
         logger.critical(f"Failed to start bot: {str(e)}")
@@ -122,7 +122,7 @@ def _start_polling_loop(bot):
         while True:
             try:
                 logger.info("Starting bot polling...")
-                bot.polling(none_stop=True, interval=0, timeout=60, long_polling_timeout=60)
+                bot.polling(none_stop=True, interval=1, timeout=360, long_polling_timeout=480)
             except requests.exceptions.ReadTimeout:
                 logger.warning("Polling timeout occurred, retrying in 15 seconds...")
                 sleep(15)

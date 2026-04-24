@@ -72,7 +72,7 @@ def start_bot():
     logger.info(f"Initializing {config.name} v{config.version}")
 
     try:
-        bot = telebot.TeleBot(BOT_TOKEN, use_class_middlewares=True)
+        bot = telebot.TeleBot(BOT_TOKEN, use_class_middlewares=True, none_stop=True, timeout=120)
         _setup_middlewares(bot)
         _register_handlers(bot)
         bot.add_custom_filter(telebot.custom_filters.StateFilter(bot))

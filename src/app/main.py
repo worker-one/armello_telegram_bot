@@ -72,7 +72,7 @@ def start_bot():
     logger.info(f"Initializing {config.name} v{config.version}")
 
     try:
-        bot = telebot.TeleBot(BOT_TOKEN, use_class_middlewares=True, interval=10, timeout=120)
+        bot = telebot.TeleBot(BOT_TOKEN, use_class_middlewares=True)
         _setup_middlewares(bot)
         _register_handlers(bot)
         bot.add_custom_filter(telebot.custom_filters.StateFilter(bot))
@@ -80,7 +80,7 @@ def start_bot():
         bot_info = bot.get_me()
         logger.info(f"Bot {bot_info.username} (ID: {bot_info.id}) initialized successfully")
 
-        bot.polling(none_stop=True, interval=0, timeout=60, long_polling_timeout=60)
+        bot.polling(none_stop=True, timeout=120, long_polling_timeout=60, interval=2)
 
     except Exception as e:
         logger.critical(f"Failed to start bot: {str(e)}")
